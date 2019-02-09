@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BrowserPageActivity"
+    android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/ll_browser"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorSkyBlue">
+        <ImageView
+            android:id="@+id/tv_browser"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:padding="15dp"
+            android:src="@drawable/back"/>
+    </LinearLayout>
+    <ProgressBar
+        android:id="@+id/pb_browser"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:visibility="gone"/>
+    <WebView
+        android:id="@+id/wv_browser"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_browser"></WebView>
+</LinearLayout>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ImageView
+        android:id="@+id/iv_xiandu_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/demo"
+        android:adjustViewBounds="true"/>
+
+    <TextView
+        android:id="@+id/tv_xiandu_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="对我来说，世界就是一个巨大的雪场｜不拘一格的旅行"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tv_xiandu_time"
+        app:layout_constraintLeft_toLeftOf="@+id/iv_xiandu_title" />
+
+    <TextView
+        android:id="@+id/tv_xiandu_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="这里是时间"
+        android:textColor="@color/colorWhite"
+        app:layout_constraintBottom_toBottomOf="@id/iv_xiandu_title"
+        app:layout_constraintLeft_toLeftOf="@id/tv_xiandu_title" />
+
+
+</android.support.constraint.ConstraintLayout>
