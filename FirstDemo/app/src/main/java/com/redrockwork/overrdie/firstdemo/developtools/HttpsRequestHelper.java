@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.firstdemo.networktools;
+package com.redrockwork.overrdie.firstdemo.developtools;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,8 +10,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeoutException;
-
-import javax.net.ssl.HttpsURLConnection;
 
 /**
  * 封装好的网络请求类,默认使用GET方法,构造器设置url,返回一个Recall对象,会抛出超时异常和另一个超时之外的异常.
@@ -54,7 +52,7 @@ public class HttpsRequestHelper {
             long start = System.currentTimeMillis();
             connection = (HttpURLConnection) mURL.openConnection();
             connection.setRequestMethod("GET");
-            connection.setReadTimeout(5000);
+            connection.setReadTimeout(10000);
             connection.setConnectTimeout(10000);
             responseCode = connection.getResponseCode();
             long end = System.currentTimeMillis();

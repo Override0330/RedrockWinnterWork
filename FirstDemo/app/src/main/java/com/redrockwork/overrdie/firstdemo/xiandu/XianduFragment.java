@@ -8,15 +8,16 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
+
 import com.redrockwork.overrdie.firstdemo.MainActivity;
 import com.redrockwork.overrdie.firstdemo.R;
-import com.redrockwork.overrdie.firstdemo.networktools.HttpsRequestHelper;
+import com.redrockwork.overrdie.firstdemo.developtools.HttpsRequestHelper;
+import com.redrockwork.overrdie.firstdemo.developtools.MyViewPagerAdapter;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,9 +26,12 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 public class XianduFragment extends Fragment {
-    private View gankView;
+    private View xianduView;
     private ArrayList<Categories> categoriesArrayList = new ArrayList<>();
+    private ArrayList<String> titleArrayList = new ArrayList<>();
+    private ArrayList<Fragment> xianduFragments = new ArrayList<>();
     private TabLayout xianduTablayout;
+    private ViewPager xianduViewPager;
     public static final int SET_TABLAYOUT = 0;
     public static final int INIT_XIANDU = 1;
 
@@ -37,14 +41,11 @@ public class XianduFragment extends Fragment {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case SET_TABLAYOUT:
-                    xianduTablayout.removeAllTabs();
-                    xianduTablayout.setTabMode(TabLayout.MODE_SCROLLABLE);
-                    for (int i = 0; i < categoriesArrayList.size(); i++) {
-                        xianduTablayout.addTab(xianduTablayout.newTab().setText(categoriesArrayList.get(i).getName()));
-                    }
+                    initTabLayout();
                     break;
                 case INIT_XIANDU:
-                break;
+
+                    break;
             }
         }
     };
@@ -52,18 +53,18 @@ public class XianduFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        gankView = inflater.inflate(R.layout.xiandu_fragment,container,false);
-        final XianduNewsInitHelper xianduNewsInitHelper = new XianduNewsInitHelper(this.getContext());
+        xianduView = inflater.inflate(R.layout.xiandu_main_fragment,container,false);
+        xianduViewPager = xianduView.findViewById(R.id.vp_xiandu);
+//        final XianduNewsInitHelper xianduNewsInitHelper = new XianduNewsInitHelper(this.getContext());
         xianduTablayout = MainActivity.mTabLayout;
         MainActivity.fixedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    initSpinnerData();
+                    initTabLayoutData();
                     Message message = new Message();
                     message.what = SET_TABLAYOUT;
                     handler.sendMessage(message);
-                    xianduNewsInitHelper.initData("qdaily");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (TimeoutException e) {
@@ -74,10 +75,10 @@ public class XianduFragment extends Fragment {
             }
         });
         
-        return gankView;
+        return xianduView;
     }
 
-    public void initSpinnerData() throws JSONException, TimeoutException, IOException{
+    public void initTabLayoutData() throws JSONException, TimeoutException, IOException{
         HttpsRequestHelper httpsRequestHelper = new HttpsRequestHelper("http://gank.io/api/xiandu/categories");
         String jsonCategories = httpsRequestHelper.start().getJson();
 
@@ -90,10 +91,21 @@ public class XianduFragment extends Fragment {
             categoriesArrayList.add(new Categories(itemJson.getString("name"),itemJson.getString("en_name")));
         }
     }
+    private void initTabLayout(){
+        xianduTablayout.removeAllTabs();
+        xianduTablayout.setTabMode(TabLayout.MODE_SCROLLABLE);
+        for (int i = 0; i < categoriesArrayList.size(); i++) {
+            String temp = categoriesArrayList.get(i).getName();
+            titleArrayList.add(temp);
+            xianduTablayout.addTab(xianduTablayout.newTab().setText(temp));
+            XianduNewsFragment xianduNewsFragment = XianduNewsFragment.newIntance(categoriesArrayList.get(i).getEn_name());
+            xianduFragments.add(xianduNewsFragment);
+        }
+        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(),xianduFragments,titleArrayList);
+        xianduTablayout.setupWithViewPager(xianduViewPager);
+        xianduViewPager.setAdapter(myViewPagerAdapter);
+    }
 }
-
-
-
 
 
 class Categories{

@@ -11,13 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.redrockwork.overrdie.firstdemo.MainActivity;
+import com.redrockwork.overrdie.firstdemo.developtools.MyViewPagerAdapter;
 import com.redrockwork.overrdie.firstdemo.R;
-import com.redrockwork.overrdie.firstdemo.gank.news.AndroidNewsFragment;
-import com.redrockwork.overrdie.firstdemo.gank.news.AppFragment;
-import com.redrockwork.overrdie.firstdemo.gank.news.FrontEndNewsFragment;
-import com.redrockwork.overrdie.firstdemo.gank.news.RecommendFragment;
-import com.redrockwork.overrdie.firstdemo.gank.news.ResoureNewsFragment;
-import com.redrockwork.overrdie.firstdemo.gank.news.iOSNewsFragment;
 
 import java.util.ArrayList;
 
@@ -28,7 +23,8 @@ public class GankFragment extends Fragment {
     private ArrayList<Fragment> newsFragments = new ArrayList();
     public static final int SET_SPINNER = 0;
     public static final int INIT_NEWS = 1;
-    private String [] titles = {"Android","iOS","前端","拓展资源","瞎推荐","APP"};
+    private String [] stringTitle = {"Android","iOS","前端","拓展资源","瞎推荐","App"};
+    private ArrayList<String> titles = new ArrayList<>();
 
 
     @Nullable
@@ -42,25 +38,18 @@ public class GankFragment extends Fragment {
     private void initTabLayout(){
         mTabLayout = MainActivity.mTabLayout;
         mViewPager = gankView.findViewById(R.id.gank_vp);
-        AndroidNewsFragment androidNewsFragment = new AndroidNewsFragment();
-        iOSNewsFragment iOSNewsFragment = new iOSNewsFragment();
-        FrontEndNewsFragment frontEndNewsFragment = new FrontEndNewsFragment();
-        ResoureNewsFragment resoureNewsFragment = new ResoureNewsFragment();
-        RecommendFragment recommendFragment = new RecommendFragment();
-        AppFragment appFragment = new AppFragment();
-        newsFragments.add(androidNewsFragment);
-        newsFragments.add(iOSNewsFragment);
-        newsFragments.add(frontEndNewsFragment);
-        newsFragments.add(resoureNewsFragment);
-        newsFragments.add(recommendFragment);
-        newsFragments.add(appFragment);
-        mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
-        for (int i = 0; i < titles.length; i++) {
-            mTabLayout.addTab(mTabLayout.newTab().setText(titles[i]));
+        for (int i = 0; i < stringTitle.length ;i++) {
+            GankNewsFragment gankNewsFragment = GankNewsFragment.newInstant(stringTitle[i]);
+            newsFragments.add(gankNewsFragment);
         }
-        MyPagerAdapter myPagerAdapter = new MyPagerAdapter(getChildFragmentManager(),newsFragments,titles);
+        mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
+        for (int i = 0; i < stringTitle.length; i++) {
+            titles.add(stringTitle[i]);
+            mTabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
+        }
+        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(),newsFragments,titles);
         mTabLayout.setupWithViewPager(mViewPager);
-        mViewPager.setAdapter(myPagerAdapter);
+        mViewPager.setAdapter(myViewPagerAdapter);
     }
 
 }

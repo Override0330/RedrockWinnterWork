@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.firstdemo.networktools;
+package com.redrockwork.overrdie.firstdemo.developtools;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +8,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MyImageLoder {
     public static Bitmap loderFromNetWork(String url){

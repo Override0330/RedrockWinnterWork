@@ -11,8 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.redrockwork.overrdie.firstdemo.R;
-import com.redrockwork.overrdie.firstdemo.networktools.HttpsRequestHelper;
-import com.redrockwork.overrdie.firstdemo.networktools.Recall;
+import com.redrockwork.overrdie.firstdemo.developtools.HttpsRequestHelper;
+import com.redrockwork.overrdie.firstdemo.developtools.Recall;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,12 +26,6 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
     private ArrayList<News> news = new ArrayList<>();
     private Context context;
     private String category;
-
-    public void setOnItemClickListenr(OnItemClickListenr onItemClickListenr) {
-        this.onItemClickListenr = onItemClickListenr;
-    }
-
-    private OnItemClickListenr onItemClickListenr = null;
 
     public ArrayList<News> getNews() {
         return news;
@@ -104,13 +98,13 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
         Recall recall = httpsRequestHelper.start();
         JSONObject mainJson = new JSONObject(recall.getJson());
         JSONArray resultJson = mainJson.getJSONArray("results");
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(720,
-                1080);
+//        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(720,
+//                1080);
         for (int i = 0; i < resultJson.length(); i++) {
             JSONObject newsJson = resultJson.getJSONObject(i);
             String desc = newsJson.getString("desc");
             String time = newsJson.getString("publishedAt");
-            JSONArray imagesJson = null;
+            JSONArray imagesJson;
             ArrayList<String> images = null;
             ArrayList<ImageView> imageList = new ArrayList<>();
             try{
@@ -120,7 +114,6 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
                     images.add(imagesJson.getString(j));
                     ImageView imageView = new ImageView(context);
                     imageView.setImageResource(R.drawable.wait);
-                    imageView.setLayoutParams(params);
                     imageList.add(imageView);
                 }
             }catch (Exception e){
@@ -130,6 +123,17 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
             String who = newsJson.getString("who");
             news.add(new News(desc,images,url,who,time,imageList));
         }
+    }
+
+
+    /**
+     * RecyclerViewItem的点击事件(接口回调
+     */
+
+    private OnItemClickListenr onItemClickListenr = null;
+
+    public void setOnItemClickListenr(OnItemClickListenr onItemClickListenr) {
+        this.onItemClickListenr = onItemClickListenr;
     }
 
     public static interface OnItemClickListenr {

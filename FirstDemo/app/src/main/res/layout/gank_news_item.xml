@@ -9,9 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:cardUseCompatPadding="true"
-        android:layout_margin="9dp"
-        app:cardCornerRadius="5dp"
-        app:cardElevation="5dp">
+        android:layout_margin="10dp">
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,13 +49,14 @@
                     android:id="@+id/tv_gank_news_author"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="10dp"
                     tools:text="作者"/>
                 <TextView
                     android:id="@+id/tv_gank_news_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="10dp"
+                    android:paddingBottom="5dp"
                     tools:text="2019.2.8 14:05"/>
             </LinearLayout>
 

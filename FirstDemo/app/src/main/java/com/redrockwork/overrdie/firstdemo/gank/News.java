@@ -18,7 +18,6 @@ public class News {
         this.image = image;
         this.url = url;
         this.who = who;
-
         this.time = time.split("T")[0];
         this.imagesList = images;
     }
