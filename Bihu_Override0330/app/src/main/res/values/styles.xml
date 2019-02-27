@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorSkyBlue</item>
+        <item name="colorPrimaryDark">@color/colorSkyBlue</item>
+        <item name="colorAccent">@color/colorWhite</item>
+    </style>
+    
+    <style name="TablayoutUnCallTextTheme" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="myNavigationDrawerStyle" >
+        <item name="android:textSize">18sp</item>
+    </style>
+
+</resources>

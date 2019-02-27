@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group_menu1" android:checkableBehavior="single">
+        <item
+            android:id="@+id/it_news"
+            android:title="@string/news"
+            android:icon="@drawable/ganknew" />
+    </group>
+    <group android:id="@+id/group_menu2" android:checkableBehavior="single">
+        <item
+            android:id="@+id/it_xiandu"
+            android:title="@string/xiandu"
+            android:icon="@drawable/xiandu"/>
+    </group>
+    <group android:id="@+id/group_menu3" android:checkableBehavior="single">
+        <item
+            android:id="@+id/it_answer"
+            android:title="@string/answer"
+            android:icon="@drawable/bihu"/>
+    </group>
+    <group android:id="@+id/group_menu4" android:checkableBehavior="single">
+        <item
+            android:id="@+id/it_about_me"
+            android:title="@string/gerenzhongxin"
+            android:icon="@drawable/me"/>
+    </group>
+    <group android:id="@+id/group_menu5" android:checkableBehavior="single">
+        <item
+            android:id="@+id/it_about"
+            android:title="@string/about"
+            android:icon="@drawable/about"/>
+    </group>
+</menu>

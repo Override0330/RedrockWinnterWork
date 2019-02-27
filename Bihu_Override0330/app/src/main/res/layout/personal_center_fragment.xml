@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:id="@+id/ll_user_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/colorSkyBlue">
+                <ImageView
+                    android:id="@+id/iv_user_avatar"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:layout_centerInParent="true"/>
+            <TextView
+                android:id="@+id/tv_userName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:text="UserName"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
+        <ImageView
+            android:id="@+id/iv_user_data_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@color/colorSkyBlue"/>
+    </android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/tv_change_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="40dp"
+        android:text=" 更改密码"
+        android:textSize="20dp" />
+    <TextView
+        android:id="@+id/tv_quit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="40dp"
+        android:text=" 退出登录"
+        android:textSize="20dp"/>
+</LinearLayout>

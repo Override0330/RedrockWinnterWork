@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">bi乎</string>
+    <string name="huanglong">黄龙</string>
+    <string name="index">广场</string>
+    <string name="postman">Postman</string>
+    <string name="drawer_open">open</string>
+    <string name="drawer_close">close</string>
+    <string name="colorselect">颜色选择器</string>
+    <string name="assistant">红岩提醒助手</string>
+    <string name="gank">Gank</string>
+    <string name="bihu">Bi乎</string>
+    <string name="mymessage">我的消息</string>
+    <string name="activitycenter">活动中心</string>
+    <string name="tools">小工具</string>
+    <string name="about">关于</string>
+    <string name="news">Gank资讯</string>
+    <string name="answer">bihu问答</string>
+    <string name="xiandu">Gank闲读</string>
+    <string name="gerenzhongxin">个人中心</string>
+</resources>
