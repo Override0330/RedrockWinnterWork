@@ -151,7 +151,7 @@ public class BihuQuestion{
     private String count(Long cha){
         Long s = cha;
         Long min = s/60;
-        if (min==0){
+        if (min<=1){
             return "小于1分钟";
         }else if (min<=59){
             return min+"分钟";

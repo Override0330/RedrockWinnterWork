@@ -88,6 +88,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                 case INITQUESTIONIMAGES:
                     ArrayList<Bitmap> bitmapArrayList = (ArrayList<Bitmap>) msg.obj;
                     for (int i = 0; i < bitmapArrayList.size(); i++) {
+                        if (bitmapArrayList.get(i)==null){
+                            break;
+                        }
                         ImageView imageView = new ImageView(context);
                         imageView.setImageBitmap(bitmapArrayList.get(i));
                         //去白边
@@ -488,30 +491,32 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
 
 
         //加载问题的图像
-        final String [] imagesUrlArray = bihuQuestion.getImageUrl().split(",");
-        for (int i = 0; i < imagesUrlArray.length; i++) {
-            ImageView imageView = new ImageView(this);
-            imageView.setImageResource(R.drawable.wow);
-            //去白边
-            imageView.setAdjustViewBounds(true);
-            //留白
-            imageView.setPadding(0,10,20,10);
-            images.addView(imageView);
-        }
-        MainActivity.fixedThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<Bitmap> bitmapArrayList = new ArrayList<>();
-                for (int i = 0; i < imagesUrlArray.length; i++) {
-                    Bitmap bitmap = MyImageTools.getBitmap(imagesUrlArray[i]);
-                    bitmapArrayList.add(bitmap);
-                }
-                Message message = new Message();
-                message.what = INITQUESTIONIMAGES;
-                message.obj = bitmapArrayList;
-                handler.sendMessage(message);
+        if (!bihuQuestion.getImageUrl().equals("null")){
+            final String [] imagesUrlArray = bihuQuestion.getImageUrl().split(",");
+            for (int i = 0; i < imagesUrlArray.length; i++) {
+                ImageView imageView = new ImageView(this);
+                imageView.setImageResource(R.drawable.icon_1024);
+                //去白边
+                imageView.setAdjustViewBounds(true);
+                //留白
+                imageView.setPadding(0,10,20,10);
+                images.addView(imageView);
             }
-        });
+            MainActivity.fixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ArrayList<Bitmap> bitmapArrayList = new ArrayList<>();
+                    for (int i = 0; i < imagesUrlArray.length; i++) {
+                        Bitmap bitmap = MyImageTools.getBitmap(imagesUrlArray[i]);
+                        bitmapArrayList.add(bitmap);
+                    }
+                    Message message = new Message();
+                    message.what = INITQUESTIONIMAGES;
+                    message.obj = bitmapArrayList;
+                    handler.sendMessage(message);
+                }
+            });
+        }
         //加载回答
         swipeRefreshLayout.setRefreshing(true);
         if (BihuFragment.nowUser!=null){

@@ -8,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -77,9 +79,21 @@ public class BihuLoginActivity extends AppCompatActivity {
                                     handler.post(new Runnable() {
                                         @Override
                                         public void run() {
+                                            Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
                                             MainActivity.header.setImageBitmap(avator);
+                                            MainActivity.header.startAnimation(animation);
                                             MainActivity.naviagtionHeader.setImageBitmap(avator);
+                                            MainActivity.naviagtionHeader.startAnimation(animation);
                                             MainActivity.avator = avator;
+                                        }
+                                    });
+                                }else {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            MainActivity.header.setImageResource(R.drawable.defultuser);
+                                            MainActivity.naviagtionHeader.setImageResource(R.drawable.defultuser);
+                                            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
                                         }
                                     });
                                 }

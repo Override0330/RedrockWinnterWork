@@ -88,7 +88,7 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
 
         //选择显示更新时间还是发布时间
         if (bihuQuestion.getRecent().equals("null")){
-            viewHolder.time.setText("");
+            viewHolder.time.setText("没有动态😣");
         }else {
             viewHolder.time.setText(bihuQuestion.getRecent());
         }

@@ -12,6 +12,8 @@ import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +71,11 @@ public class PersonalCenterFragment extends Fragment {
         });
         userName = personalCenter.findViewById(R.id.tv_userName);
         if (BihuFragment.nowUser==null){
-            userName.setText(MainActivity.sharedPreferences.getString("lastUserName","无网络链接")+"(离线)");
+            if (MainActivity.sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                userName.setText("未登录(离线)");
+            }else {
+                userName.setText(MainActivity.sharedPreferences.getString("lastUserName","temp")+"(离线)");
+            }
         }else if (BihuFragment.nowUser.getUsername().equals("temp")){
             userName.setText("游客,点击登录");
         }else {
@@ -132,8 +138,11 @@ public class PersonalCenterFragment extends Fragment {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    Animation animation = AnimationUtils.loadAnimation(getContext(),R.anim.fadein);
                                     userAvatar.setImageResource(R.drawable.defultuser);
+                                    userAvatar.startAnimation(animation);
                                     MainActivity.header.setImageResource(R.drawable.defultuser);
+                                    MainActivity.header.startAnimation(animation);
                                     userName.setText("游客,点击登录");
                                 }
                             });

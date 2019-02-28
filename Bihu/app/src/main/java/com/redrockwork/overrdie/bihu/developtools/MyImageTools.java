@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Environment;
 import android.util.Log;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.ResponseInfo;
@@ -40,7 +41,7 @@ public class MyImageTools {
             mUrl = new URL(url);
             connection = (HttpURLConnection) mUrl.openConnection();
             connection.setRequestMethod("GET");
-            connection.setReadTimeout(30000);
+            connection.setReadTimeout(20000);
             connection.setConnectTimeout(30000);
             int responseCode = connection.getResponseCode();
             if (responseCode==200){
@@ -76,6 +77,10 @@ public class MyImageTools {
         return null;
     }
     public static Bitmap cutToCircle(Bitmap bitmap){
+        //如果头像太大
+        if (bitmap.getWidth()>3000||bitmap.getHeight()>3000){
+            bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/3,bitmap.getHeight()/3, true);
+        }
         int radius = 0;
         if (bitmap.getWidth()>bitmap.getHeight()){
             radius = bitmap.getHeight();
@@ -112,7 +117,7 @@ public class MyImageTools {
         File file = new File("/mnt/sdcard/pic/"+name+".jpg");
         try {
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bos);
             bos.flush();
             bos.close();
         } catch (IOException e) {

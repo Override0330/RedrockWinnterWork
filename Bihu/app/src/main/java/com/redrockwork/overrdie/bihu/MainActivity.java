@@ -180,7 +180,11 @@ public class MainActivity extends AppCompatActivity{
                 naviagtionHeader = findViewById(R.id.iv_header);
                 userName = findViewById(R.id.tv_header);
                 if (BihuFragment.nowUser==null){
-                    userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                    if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                        userName.setText("未登录(离线)");
+                    }else {
+                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                    }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -221,7 +225,11 @@ public class MainActivity extends AppCompatActivity{
                 naviagtionHeader = findViewById(R.id.iv_header);
                 userName = findViewById(R.id.tv_header);
                 if (BihuFragment.nowUser==null){
-                    userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                    if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                        userName.setText("未登录(离线)");
+                    }else {
+                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                    }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override

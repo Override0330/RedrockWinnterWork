@@ -36,7 +36,9 @@ import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 import org.json.JSONException;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 public class BihuQuestionPublishActivity extends AppCompatActivity {
@@ -83,13 +85,15 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                 //加入问题图片的处理
                 for (int i = 0; i < bitmapsArrayList.size(); i++) {
                     final int finalI = i;
+                    final int finalI1 = i;
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
                             Bitmap bitmap = bitmapsArrayList.get(finalI);
-                            File file = MyImageTools.saveBitmapFile(bitmap,"test"+ finalI);
-                            MyImageTools.postFileToQiniu(file,"test"+ finalI);
-                            images.add("http://pnffhnnkk.bkt.clouddn.com/"+"test"+finalI);
+                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            File file = MyImageTools.saveBitmapFile(bitmap,df.format(new Date())+ finalI1);
+                            MyImageTools.postFileToQiniu(file,df.format(new Date())+ finalI1);
+                            images.add("http://pnffhnnkk.bkt.clouddn.com/"+df.format(new Date())+ finalI1);
                         }
                     });
                 }

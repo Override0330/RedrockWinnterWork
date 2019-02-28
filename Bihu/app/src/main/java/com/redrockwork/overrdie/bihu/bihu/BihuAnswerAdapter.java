@@ -50,7 +50,7 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
         int adapterPosition = viewHolder.getAdapterPosition();
         if (adapterPosition > lastPosition) {
             Animator animator = ObjectAnimator.ofFloat(viewHolder.itemView, "alpha", 0, 1f);
-            animator.setDuration(2000).start();
+            animator.setDuration(1000).start();
             lastPosition = adapterPosition;
         } else {
             ViewCompat.setAccessibilityLiveRegion(viewHolder.itemView, 1);
@@ -114,6 +114,7 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
                 String imageUrl = bihuAnswer.getAuthor().getAvatar();
                 if (!imageUrl.equals("null")){
                     final Bitmap bitmap = MyImageTools.getBitmap(imageUrl);
+                    if (bitmap!=null)
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -126,7 +127,6 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
                 }
             }
         });
-        String url = bihuAnswer.getImagesUrl();
         if (!bihuAnswer.getImagesUrl().equals("null")&&!bihuAnswer.getImagesUrl().equals("")){
             final String [] imagesUrl = bihuAnswer.getImagesUrl().split(",");
             for (int i = 0; i < imagesUrl.length; i++) {
@@ -140,22 +140,24 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
                 public void run() {
                     for (int i = 0; i < imagesUrl.length; i++) {
                         Bitmap bitmap = MyImageTools.getBitmap(imagesUrl[i]);
-                        final ImageView imageView = new ImageView(context);
-                        imageView.setImageBitmap(bitmap);
-                        //去白边
-                        imageView.setAdjustViewBounds(true);
-                        //留白
-                        imageView.setPadding(0,10,20,10);
-                        final int finalI = i+1;
-                        mainHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
-                                imageView.startAnimation(animation);
-                                viewHolder.images.addView(imageView, finalI);
-                                viewHolder.images.removeViewAt(viewHolder.images.getChildCount()-1);
-                            }
-                        });
+                        if (bitmap!=null){
+                            final ImageView imageView = new ImageView(context);
+                            imageView.setImageBitmap(bitmap);
+                            //去白边
+                            imageView.setAdjustViewBounds(true);
+                            //留白
+                            imageView.setPadding(0,10,20,10);
+                            final int finalI = i+1;
+                            mainHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                                    imageView.startAnimation(animation);
+                                    viewHolder.images.addView(imageView, finalI);
+                                    viewHolder.images.removeViewAt(viewHolder.images.getChildCount()-1);
+                                }
+                            });
+                        }
                     }
                 }
             });
