@@ -1,6 +1,7 @@
 package com.redrockwork.overrdie.bihu.bihu;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 import com.redrockwork.overrdie.bihu.developtools.RecyclerViewMyLinearLayoutManager;
 
 import org.json.JSONException;
@@ -38,7 +40,9 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
     private SwipeRefreshLayout swipeRefreshLayout;
     public static BihuSquareAdapter bihuSquareAdapter;
     private Handler mainHandler = new Handler();
+    private Activity mainActivity = getActivity();
     public static boolean isClickThePublishButton = false;
+    public static boolean isStartTheLoginActivity = false;
     private static final int SETRECYCLERVIEWADAPTER = 0;
     private static final int SHOWTOASTMESSAGE = 1;
     private static final int SETEXCITINGTEXTVIEWICON = 2;
@@ -52,6 +56,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
             switch (msg.what){
                 case SETRECYCLERVIEWADAPTER:
                     initRecyclerView();
+                    swipeRefreshLayout.setRefreshing(false);
                     break;
                 case SHOWTOASTMESSAGE:
                     Toast.makeText(getContext(),(String)msg.obj,Toast.LENGTH_SHORT).show();
@@ -109,6 +114,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                                BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
 //                                Log.d(TAG, "run: 使用默认账号登录");
 //                                Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
+                                BihuPostTools.bihuQuestionArrayList.clear();
                                 bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
                                 Collections.reverse(bihuQuestionArrayList);
                                 Message message = new Message();
@@ -126,12 +132,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
                                 //用户认证错误
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                                startActivity(intent);
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
                             }
                         }
@@ -158,12 +159,12 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                                 Log.d(TAG, "run: 使用"+BihuFragment.nowUser.getUsername()+"登录");
                                 Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
+                                BihuPostTools.bihuQuestionArrayList.clear();
                                 bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
                                 Collections.reverse(bihuQuestionArrayList);
                                 Message message = new Message();
                                 message.what = SETRECYCLERVIEWADAPTER;
                                 handler.sendMessage(message);
-                                swipeRefreshLayout.setRefreshing(false);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             } catch (TimeoutException e) {
@@ -171,12 +172,8 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                             } catch (IOException e) {
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                                startActivity(intent);
+                                //用户认证错误
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
                             }
                         }
@@ -184,7 +181,9 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                 }else {
                     //网络不正常的时候
                     try {
+                        BihuPostTools.bihuQuestionArrayList.clear();
                         bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
+                        Collections.reverse(bihuQuestionArrayList);
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -199,7 +198,13 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }finally {
-                        swipeRefreshLayout.setRefreshing(false);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
+
                     }
                 }
 
@@ -215,12 +220,12 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                    BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                     Log.d(TAG, "run: 使用"+BihuFragment.nowUser.getUsername()+"登录");
                     Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
+                        BihuPostTools.bihuQuestionArrayList.clear();
                         bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
                         Collections.reverse(bihuQuestionArrayList);
                         Message message = new Message();
                         message.what = SETRECYCLERVIEWADAPTER;
                         handler.sendMessage(message);
-                        swipeRefreshLayout.setRefreshing(false);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } catch (TimeoutException e) {
@@ -228,18 +233,23 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                        startActivity(intent);
+                        //用户认证错误
+                        disposeUnCurrentUser();
                         e.printStackTrace();
+                    }finally {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
                     }
                 }else {
                     //网络不正常的时候
                     try {
+                        BihuPostTools.bihuQuestionArrayList.clear();
                         bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
+                        Collections.reverse(bihuQuestionArrayList);
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -250,11 +260,16 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                         Collections.reverse(bihuQuestionArrayList);
                         Message message = new Message();
                         message.what = SETRECYCLERVIEWADAPTER;
-                        handler.sendMessage(message);
+                        mainHandler.sendMessage(message);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }finally {
-                        swipeRefreshLayout.setRefreshing(false);
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                swipeRefreshLayout.setRefreshing(false);
+                            }
+                        });
                     }
                 }
 
@@ -268,6 +283,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
     public void onResume() {
         super.onResume();
         if (isClickThePublishButton){
+            isClickThePublishButton = false;
             swipeRefreshLayout.setRefreshing(true);
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
@@ -278,32 +294,30 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                        BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                             Log.d(TAG, "run: 使用"+BihuFragment.nowUser.getUsername()+"登录");
                             Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
+                            BihuPostTools.bihuQuestionArrayList.clear();
                             bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
                             Collections.reverse(bihuQuestionArrayList);
                             Message message = new Message();
                             message.what = SETRECYCLERVIEWADAPTER;
                             handler.sendMessage(message);
-                            isClickThePublishButton = false;
-                            swipeRefreshLayout.setRefreshing(false);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (TimeoutException e) {
                             e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
+
                         } catch (UnCurrentUserException e) {
-                            Message message = new Message();
-                            message.what = SHOWTOASTMESSAGE;
-                            message.obj = "身份验证过期,请重新登录";
-                            handler.sendMessage(message);
-                            Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                            startActivity(intent);
+                            //用户认证错误
+                            disposeUnCurrentUser();
                             e.printStackTrace();
                         }
                     }else {
                         //网络不正常的时候
                         try {
+                            BihuPostTools.bihuQuestionArrayList.clear();
                             bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
+                            Collections.reverse(bihuQuestionArrayList);
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -318,7 +332,12 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }finally {
-                            swipeRefreshLayout.setRefreshing(false);
+                            mainHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    swipeRefreshLayout.setRefreshing(false);
+                                }
+                            });
                         }
                     }
 
@@ -421,12 +440,8 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                        startActivity(intent);
+                        //用户认证错误
+                        disposeUnCurrentUser();
                         e.printStackTrace();
                     }
                 }
@@ -505,12 +520,8 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                        startActivity(intent);
+                        //用户认证错误
+                        disposeUnCurrentUser();
                         e.printStackTrace();
                     }
                 }
@@ -581,12 +592,8 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                        startActivity(intent);
+                        //用户认证错误
+                        disposeUnCurrentUser();
                         e.printStackTrace();
                     }
                 }
@@ -595,4 +602,30 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 
     }
 
+    private void disposeUnCurrentUser(){
+        Message message = new Message();
+        message.what = SHOWTOASTMESSAGE;
+        message.obj = "身份验证过期,请重新登录";
+        handler.sendMessage(message);
+        try {
+            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,getContext());
+            MainActivity.mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.header.setImageResource(R.drawable.defultuser);
+                }
+            });
+        } catch (JSONException e1) {
+            e1.printStackTrace();
+        } catch (TimeoutException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        isStartTheLoginActivity = true;
+        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
 }

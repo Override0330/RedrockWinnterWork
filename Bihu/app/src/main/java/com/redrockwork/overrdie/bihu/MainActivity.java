@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -17,6 +18,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,12 +51,23 @@ public class MainActivity extends AppCompatActivity{
     public static ImageView header,naviagtionHeader;
     private TextView userName;
     public static TextView title;
-    private Context context;
-    private Handler handler = new Handler();
+    private static Context context;
+    public static Handler mainHandler = new Handler();
     public static Bitmap avator;
     public static SharedPreferences sharedPreferences;
     public static SharedPreferences.Editor editor;
     public static  ImageView publish;
+    @SuppressLint("HandlerLeak")
+    public static Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 1:
+                    Toast.makeText(context,(String)msg.obj,Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    };
     @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +104,7 @@ public class MainActivity extends AppCompatActivity{
                     //判断登录的账号
                     if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
                         BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
-                        handler.post(new Runnable() {
+                        mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 Toast.makeText(context,"当前使用游客账号登录",Toast.LENGTH_SHORT).show();
@@ -101,7 +114,7 @@ public class MainActivity extends AppCompatActivity{
                         String [] value = {sharedPreferences.getString("lastUserName","temp"),sharedPreferences.getString("lastUserPassword","huanglong2019")};
                         BihuFragment.nowUser = BihuPostTools.login(value);
                         if (BihuFragment.nowUser == null){
-                            handler.post(new Runnable() {
+                            mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     Toast.makeText(context," 身份验证过期,请重新登录!当前使用游客账号登录",Toast.LENGTH_SHORT).show();
@@ -111,7 +124,7 @@ public class MainActivity extends AppCompatActivity{
                         }
                     }
                     if (BihuFragment.nowUser==null){
-                        handler.post(new Runnable() {
+                        mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 header.setImageResource(R.drawable.without_network);
@@ -121,13 +134,14 @@ public class MainActivity extends AppCompatActivity{
                         //若是默认账号则设置默认头像
                         Bitmap bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
                         avator = MyImageTools.cutToCircle(bitmap);
-                        handler.post(new Runnable() {
+                        mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 header.setImageBitmap(avator);
                             }
                         });
                     }else {
+                        Log.v("加载图像","开始加载用户头像"+BihuFragment.nowUser.getUsername());
                         Bitmap bitmap = MyImageTools.getBitmap(BihuFragment.nowUser.getAvatar());
                         if (bitmap!=null){
                             avator = MyImageTools.cutToCircle(bitmap);
@@ -135,7 +149,7 @@ public class MainActivity extends AppCompatActivity{
                             bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
                             avator = MyImageTools.cutToCircle(bitmap);
                         }
-                        handler.post(new Runnable() {
+                        mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 if (avator!=null)
@@ -149,12 +163,12 @@ public class MainActivity extends AppCompatActivity{
                     }
                 }catch (UnknownHostException e){
                     e.printStackTrace();
-                    handler.post(new Runnable() {
+                    mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             header.setImageResource(R.drawable.without_network);
                             avator = MyImageTools.changeToBitmap(R.drawable.without_network,context);
-                            handler.post(new Runnable() {
+                            mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     Toast.makeText(context,"当前无网络链接,将使用缓存数据,部分服务将不可用",Toast.LENGTH_LONG).show();
@@ -183,7 +197,7 @@ public class MainActivity extends AppCompatActivity{
                     if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
                         userName.setText("未登录(离线)");
                     }else {
-                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"\n(离线)");
                     }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
@@ -228,7 +242,7 @@ public class MainActivity extends AppCompatActivity{
                     if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
                         userName.setText("未登录(离线)");
                     }else {
-                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"(离线)");
+                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"\n(离线)");
                     }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {

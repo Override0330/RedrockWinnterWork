@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -143,7 +144,7 @@ public class PersonalCenterFragment extends Fragment {
                                     userAvatar.startAnimation(animation);
                                     MainActivity.header.setImageResource(R.drawable.defultuser);
                                     MainActivity.header.startAnimation(animation);
-                                    userName.setText("游客,点击登录");
+                                    userName.setText("游客,点击头像登录");
                                 }
                             });
                         }
@@ -163,7 +164,7 @@ public class PersonalCenterFragment extends Fragment {
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
                     //本地先备份,加载的时候就不需要重新网络请求了
                     String fileName = df.format(new Date());
                     File file = MyImageTools.saveBitmapFile(tempBitmap,fileName);
@@ -196,8 +197,7 @@ public class PersonalCenterFragment extends Fragment {
                             @Override
                             public void run() {
                                 Toast.makeText(getContext(),"身份验证过期,请重新登录",Toast.LENGTH_SHORT);
-                                Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                                startActivity(intent);
+                                disposeUnCurrentUser();
                             }
                         });
                     }
@@ -209,5 +209,34 @@ public class PersonalCenterFragment extends Fragment {
             userName.setText(BihuFragment.nowUser.getUsername());
             isLogin = false;
         }
+        if (BihuFragment.nowUser==null){
+            userAvatar.setImageResource(R.drawable.without_network);
+            if (MainActivity.sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                userName.setText("未登录(离线)");
+            }else {
+                userName.setText(MainActivity.sharedPreferences.getString("lastUserName","temp")+"(离线)");
+            }
+        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+            userAvatar.setImageResource(R.drawable.defultuser);
+            userName.setText("游客,点击头像登录");
+        }
+
+    }
+
+    private void disposeUnCurrentUser(){
+        try {
+            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,getContext());
+            MainActivity.header.setImageResource(R.drawable.defultuser);
+        } catch (JSONException e1) {
+            e1.printStackTrace();
+        } catch (TimeoutException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

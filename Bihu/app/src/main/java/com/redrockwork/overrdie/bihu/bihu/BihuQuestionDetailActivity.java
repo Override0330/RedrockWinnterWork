@@ -20,6 +20,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -46,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
@@ -63,7 +65,6 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     private ArrayList<String> answerImagesUrl = new ArrayList<>();
     private ArrayList<Bitmap> publishBitmap= new ArrayList<>();
     private BihuAnswerAdapter.ViewHolder viewHolder;
-    private Handler mainHandler = new Handler();
     private Context context = this;
     private static final int CHOOSE_PHOTO = 0;
     private static final int SET_AUTHOR_AVATAR = 0;
@@ -105,6 +106,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     break;
                 case INITANSWERADAPTER:
                     initAnswerAdapter();
+                    swipeRefreshLayout.setRefreshing(false);
                     break;
                 case SETQUESTIONEXCITINGTEXTVIEWICON:
                     Drawable excitingDrawable = (Drawable)msg.obj;
@@ -169,6 +171,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     viewHolder.naive.setText(nowAnswerNaiveCount+" 踩");
                     break;
                 case SHOWTOASTMESSAGE:
+                    swipeRefreshLayout.setRefreshing(false);
                     String message = (String)msg.obj;
                     Toast.makeText(context,message,Toast.LENGTH_SHORT).show();
                     if (msg.arg1==0){
@@ -212,9 +215,6 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                                 message.what = INITANSWERADAPTER;
                                 handler.sendMessage(message);
                                 //加载回答的图片
-
-                                //刷新动画结束
-                                swipeRefreshLayout.setRefreshing(false);
                             } catch (TimeoutException e) {
                                 e.printStackTrace();
                             } catch (JSONException e) {
@@ -222,20 +222,25 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                             } catch (IOException e) {
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
+                                //身份验证过期
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
-                                swipeRefreshLayout.setRefreshing(false);
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(context,BihuLoginActivity.class);
-                                startActivity(intent);
                             }
                         }
                     });
                 }else {
                     try {
+                        BihuPostTools.bihuAnswerArrayList.clear();
                         bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0",bihuQuestion.getId()+"");
+                        Collections.reverse(bihuAnswerArrayList);
+                        //最笨的算法置顶采纳
+                        for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
+                            if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
+                                BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
+                                bihuAnswerArrayList.remove(i);
+                                bihuAnswerArrayList.add(0,bestAnswer);
+                            }
+                        }
                         swipeRefreshLayout.setRefreshing(false);
                         Message message = new Message();
                         message.what = INITANSWERADAPTER;
@@ -282,7 +287,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                                 falseMessage.what = SHOWTOASTMESSAGE;
                                 //失败传入1
                                 falseMessage.arg1 = 1;
-                                falseMessage.obj = "回答失败";
+                                falseMessage.obj = "回答失败,网络链接可能已经断开";
                                 handler.sendMessage(falseMessage);
                             }
                         }
@@ -401,13 +406,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                             } catch (TimeoutException e) {
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
+                                //身份验证过期
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(context,BihuLoginActivity.class);
-                                startActivity(intent);
                             }
                         }
                     });
@@ -474,13 +475,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                             } catch (TimeoutException e) {
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
+                                //身份验证过期
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(context,BihuLoginActivity.class);
-                                startActivity(intent);
                             }
                         }
                     });
@@ -526,7 +523,6 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     try {
                         //加载回答的文字信息
                         initAnswer(BihuFragment.nowUser,"0","20",bihuQuestion.getId());
-                        swipeRefreshLayout.setRefreshing(false);
                         Message message = new Message();
                         message.what = INITANSWERADAPTER;
                         handler.sendMessage(message);
@@ -538,21 +534,25 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
+                        //身份验证过期
+                        disposeUnCurrentUser();
                         e.printStackTrace();
-                        swipeRefreshLayout.setRefreshing(false);
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(context,BihuLoginActivity.class);
-                        startActivity(intent);
                     }
                 }
             });
         }else {
             try {
+                BihuPostTools.bihuAnswerArrayList.clear();
                 bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0",bihuQuestion.getId()+"");
-                swipeRefreshLayout.setRefreshing(false);
+                Collections.reverse(bihuAnswerArrayList);
+                //最笨的算法置顶采纳
+                for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
+                    if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
+                        BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
+                        bihuAnswerArrayList.remove(i);
+                        bihuAnswerArrayList.add(0,bestAnswer);
+                    }
+                }
                 Message message = new Message();
                 message.what = INITANSWERADAPTER;
                 handler.sendMessage(message);
@@ -564,7 +564,18 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     }
 
     private void initAnswer(User user,String page,String count,String qid) throws TimeoutException, JSONException, IOException, UnCurrentUserException {
+        BihuPostTools.bihuAnswerArrayList.clear();
         bihuAnswerArrayList = BihuPostTools.getAnswerList(user,page,count,qid);
+        Collections.reverse(bihuAnswerArrayList);
+        //最笨的算法置顶采纳
+        for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
+            if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
+                BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
+                bihuAnswerArrayList.remove(i);
+                bihuAnswerArrayList.add(0,bestAnswer);
+            }
+        }
+
 //        Collections.reverse(bihuAnswerArrayList);
     }
 
@@ -637,13 +648,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     } catch (TimeoutException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
+                        //身份验证过期
+                        disposeUnCurrentUser();
                         e.printStackTrace();
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(context,BihuLoginActivity.class);
-                        startActivity(intent);
                     }
                 }
             });
@@ -700,13 +707,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     } catch (TimeoutException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
+                        //身份验证过期
+                        disposeUnCurrentUser();
                         e.printStackTrace();
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(context,BihuLoginActivity.class);
-                        startActivity(intent);
                     }
                 }
             });
@@ -739,13 +742,9 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         } catch (IOException e) {
             e.printStackTrace();
         } catch (UnCurrentUserException e) {
+            //身份验证过期
+            disposeUnCurrentUser();
             e.printStackTrace();
-            Message message = new Message();
-            message.what = SHOWTOASTMESSAGE;
-            message.obj = "身份验证过期,请重新登录";
-            handler.sendMessage(message);
-            Intent intent = new Intent(context,BihuLoginActivity.class);
-            startActivity(intent);
         }
         if (result[0]){
             String images = "";
@@ -896,16 +895,37 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
+                        //身份验证过期
+                        disposeUnCurrentUser();
                         e.printStackTrace();
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(context,BihuLoginActivity.class);
-                        startActivity(intent);
                     }
                 }
             });
         }
+    }
+    private void disposeUnCurrentUser(){
+        Message message = new Message();
+        message.what = SHOWTOASTMESSAGE;
+        message.obj = "身份验证过期,请重新登录";
+        handler.sendMessage(message);
+        try {
+            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+            MainActivity.mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.header.setImageResource(R.drawable.defultuser);
+                }
+            });
+        } catch (JSONException e1) {
+            e1.printStackTrace();
+        } catch (TimeoutException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        Intent intent = new Intent(context,BihuLoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

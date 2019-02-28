@@ -60,10 +60,12 @@ public class XianduNewsFragment extends Fragment {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case INITRECYCLERVIEW:
+                    swipeRefreshLayout.setRefreshing(false);
                     linearLayoutManager = new RecyclerViewMyLinearLayoutManager(getContext());
                     xianduNewsInitHelper = new XianduNewsInitHelper(xianduNewsArrayList,context,handler);
                     recyclerView.setLayoutManager(linearLayoutManager);
                     recyclerView.setAdapter(xianduNewsInitHelper);
+                    swipeRefreshLayout.setRefreshing(false);
                     xianduNewsInitHelper.setOnItemClickListener(new XianduNewsInitHelper.OnItemClickListener() {
                         @Override
                         public void onItemClick(View view, int position) {
@@ -144,7 +146,6 @@ public class XianduNewsFragment extends Fragment {
                             Message message = new Message();
                             message.what = INITRECYCLERVIEW;
                             handler.sendMessage(message);
-                            swipeRefreshLayout.setRefreshing(false);
                         } catch (UnknownHostException e){
                             //网络超时使用缓存的json
                             try {
@@ -152,7 +153,6 @@ public class XianduNewsFragment extends Fragment {
                                 Message message = new Message();
                                 message.what = INITRECYCLERVIEW;
                                 handler.sendMessage(message);
-                                swipeRefreshLayout.setRefreshing(false);
                             } catch (JSONException e1) {
                                 e1.printStackTrace();
                             }
@@ -166,7 +166,6 @@ public class XianduNewsFragment extends Fragment {
                                 Message message = new Message();
                                 message.what = INITRECYCLERVIEW;
                                 handler.sendMessage(message);
-                                swipeRefreshLayout.setRefreshing(false);
                             } catch (JSONException e1) {
                                 e1.printStackTrace();
                             }
@@ -193,7 +192,6 @@ public class XianduNewsFragment extends Fragment {
                         e.printStackTrace();
                     }
                     xianduNewsArrayList = initNewsData(detailCategories.get(1));
-                    swipeRefreshLayout.setRefreshing(false);
                     Message message = new Message();
                     message.what = INITRECYCLERVIEW;
                     handler.sendMessage(message);
@@ -205,7 +203,6 @@ public class XianduNewsFragment extends Fragment {
                         Message message = new Message();
                         message.what = INITRECYCLERVIEW;
                         handler.sendMessage(message);
-                        swipeRefreshLayout.setRefreshing(false);
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }
@@ -219,7 +216,6 @@ public class XianduNewsFragment extends Fragment {
                         Message message = new Message();
                         message.what = INITRECYCLERVIEW;
                         handler.sendMessage(message);
-                        swipeRefreshLayout.setRefreshing(false);
                     } catch (JSONException e1) {
                         e1.printStackTrace();
                     }

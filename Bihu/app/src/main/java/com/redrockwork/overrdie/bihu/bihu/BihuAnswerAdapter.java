@@ -55,6 +55,7 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
         } else {
             ViewCompat.setAccessibilityLiveRegion(viewHolder.itemView, 1);
         }
+
         final BihuAnswer bihuAnswer = bihuAnswerArrayList.get(position);
         viewHolder.authorName.setText(bihuAnswer.getAuthor().getUsername());
         viewHolder.content.setText(bihuAnswer.getContent());
@@ -132,8 +133,9 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
             for (int i = 0; i < imagesUrl.length; i++) {
                 ImageView imageView = new ImageView(context);
                 imageView.setImageResource(R.drawable.icon_1024);
+                //报错!!!每一个imageview都是一样的
                 bihuAnswer.getImageViews().add(imageView);
-                viewHolder.images.addView(bihuAnswer.getImageViews().get(i));
+                viewHolder.images.addView(imageView);
             }
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
@@ -237,4 +239,5 @@ public class BihuAnswerAdapter extends RecyclerView.Adapter<BihuAnswerAdapter.Vi
         bihuAnswerArrayList.add(index,bihuAnswer);
         notifyItemInserted(index);
     }
+
 }

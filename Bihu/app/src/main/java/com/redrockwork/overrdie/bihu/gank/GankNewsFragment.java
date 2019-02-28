@@ -44,7 +44,7 @@ public class GankNewsFragment extends Fragment {
     private RecyclerViewMyLinearLayoutManager linearLayoutManager;
     private SwipeRefreshLayout swipeRefreshLayout;
     private Handler mainHandler = new Handler();
-    private ArrayList<News> newsArrayList;
+    private ArrayList<News> newsArrayList = new ArrayList<>();
     private Context context;
     private String tab;
 
@@ -62,6 +62,7 @@ public class GankNewsFragment extends Fragment {
         public void handleMessage(Message msg) {
            switch (msg.what){
                case INITRECYCLERVIEW:
+                   swipeRefreshLayout.setRefreshing(false);
                    gankNewsInitHelper = new GankNewsInitHelper(newsArrayList,context,mainHandler);
                    RecyclerView recyclerView = NewsView.findViewById(R.id.rl_gank_news);
                    recyclerView.setLayoutManager(linearLayoutManager);
@@ -96,6 +97,7 @@ public class GankNewsFragment extends Fragment {
         tab = bundle.getString("tab");
         linearLayoutManager = new RecyclerViewMyLinearLayoutManager(this.getContext());
 //        gankNewsInitHelper = new GankNewsInitHelper(tab,this.getContext(),handler);
+        swipeRefreshLayout.setRefreshing(true);
         MainActivity.fixedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -144,11 +146,17 @@ public class GankNewsFragment extends Fragment {
                     Message message = new Message();
                     message.what = INITRECYCLERVIEW;
                     handler.sendMessage(message);
-                    swipeRefreshLayout.setRefreshing(false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e){
                     e.printStackTrace();
+                }finally {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
                 }
             }
         });
@@ -165,7 +173,6 @@ public class GankNewsFragment extends Fragment {
                             Message message = new Message();
                             message.what = INITRECYCLERVIEW;
                             handler.sendMessage(message);
-                            swipeRefreshLayout.setRefreshing(false);
 //                            for (int i = 0; i < newsArrayList.size(); i++) {
 //                                for (int j = 0; j < newsArrayList.get(i).getImages().size(); j++) {
 //                                    Log.d(TAG, "run: 开始加载第"+i+"条新闻的第"+j+"个图片");
@@ -189,7 +196,6 @@ public class GankNewsFragment extends Fragment {
                             Message message = new Message();
                             message.what = INITRECYCLERVIEW;
                             handler.sendMessage(message);
-                            swipeRefreshLayout.setRefreshing(false);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } catch (TimeoutException e) {
@@ -209,6 +215,13 @@ public class GankNewsFragment extends Fragment {
                         } catch (Exception e){
                             //奇怪,用通用的Exception捕获不到 UnknownHostException 异常
                             e.printStackTrace();
+                        } finally {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    swipeRefreshLayout.setRefreshing(false);
+                                }
+                            });
                         }
                     }
                 });

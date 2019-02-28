@@ -60,6 +60,7 @@ public class MyImageTools {
                 }else {
                     name = temp2;
                 }
+                bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/2,bitmap.getHeight()/2, true);
                 saveBitmapFile(bitmap,name);
                 return bitmap;
             }

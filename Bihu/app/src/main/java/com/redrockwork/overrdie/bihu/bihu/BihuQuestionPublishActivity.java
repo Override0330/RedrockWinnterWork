@@ -46,7 +46,7 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
     private TextView title,content;
     private Button publish;
     private LinearLayout imagesView;
-    private Context context;
+    private Context context = this;
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<Bitmap> bitmapsArrayList = new ArrayList<>();
     private final static int SHOWTOASTMESSAGE = 0;
@@ -69,7 +69,6 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_publish);
-        context = this;
         backButton = findViewById(R.id.iv_question_publish_back);
         title = findViewById(R.id.et_publish_question_title);
         content = findViewById(R.id.et_publish_question_content);
@@ -79,79 +78,92 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
         publish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"点击了发布按钮",Toast.LENGTH_SHORT).show();
-                final String titleString = title.getText().toString();
-                final String contentString = content.getText().toString();
-                //加入问题图片的处理
-                for (int i = 0; i < bitmapsArrayList.size(); i++) {
-                    final int finalI = i;
-                    final int finalI1 = i;
-                    MainActivity.fixedThreadPool.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            Bitmap bitmap = bitmapsArrayList.get(finalI);
-                            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            File file = MyImageTools.saveBitmapFile(bitmap,df.format(new Date())+ finalI1);
-                            MyImageTools.postFileToQiniu(file,df.format(new Date())+ finalI1);
-                            images.add("http://pnffhnnkk.bkt.clouddn.com/"+df.format(new Date())+ finalI1);
-                        }
-                    });
-                }
-                //等待图片上传完毕
-                while(images.size()!=bitmapsArrayList.size()){
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                //发布问题处理
-                if (!titleString.equals("")&&!contentString.equals("")){
-                    MainActivity.fixedThreadPool.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                if (publishQuestion(titleString,contentString)){
-                                    Log.i("发布","成功");
-                                    //成功Toast
-                                    Message successfulMessage = new Message();
-                                    successfulMessage.what = SHOWTOASTMESSAGE;
-                                    successfulMessage.obj = "发布成功";
-                                    handler.sendMessage(successfulMessage);
-                                    BihuSquareFragment.isClickThePublishButton = true;
-                                    finish();
-                                }else {
-                                    Log.i("发布","失败");
-                                    //失败Toast
-                                    Message falseMessge = new Message();
-                                    falseMessge.what = SHOWTOASTMESSAGE;
-                                    falseMessge.obj = "发布失败";
-                                    handler.sendMessage(falseMessge);
-                                }
-                            } catch (TimeoutException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (UnCurrentUserException e) {
-                                e.printStackTrace();
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(context,BihuLoginActivity.class);
-                                startActivity(intent);
+//                Toast.makeText(context,"点击了发布按钮",Toast.LENGTH_SHORT).show();
+                if (BihuFragment.nowUser!=null){
+                    //用户属性正常
+                    final String titleString = title.getText().toString();
+                    final String contentString = content.getText().toString();
+                    //加入问题图片的处理
+                    for (int i = 0; i < bitmapsArrayList.size(); i++) {
+                        final int finalI = i;
+                        final int finalI1 = i;
+                        MainActivity.fixedThreadPool.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                Bitmap bitmap = bitmapsArrayList.get(finalI);
+                                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+                                File file = MyImageTools.saveBitmapFile(bitmap,df.format(new Date())+ finalI1);
+                                MyImageTools.postFileToQiniu(file,df.format(new Date())+ finalI1);
+                                images.add("http://pnffhnnkk.bkt.clouddn.com/"+df.format(new Date())+ finalI1);
                             }
+                        });
+                    }
+                    //等待图片上传完毕
+                    while(images.size()!=bitmapsArrayList.size()){
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    //发布问题处理
+                    if (!titleString.equals("")&&!contentString.equals("")){
+                        MainActivity.fixedThreadPool.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    if (publishQuestion(titleString,contentString)){
+                                        Log.i("发布","成功");
+                                        //成功Toast
+                                        Message successfulMessage = new Message();
+                                        successfulMessage.what = SHOWTOASTMESSAGE;
+                                        successfulMessage.obj = "发布成功";
+                                        handler.sendMessage(successfulMessage);
+                                        BihuSquareFragment.isClickThePublishButton = true;
+                                        finish();
+                                    }else {
+                                        Log.i("发布","失败");
+                                        //失败Toast
+                                        Message falseMessge = new Message();
+                                        falseMessge.what = SHOWTOASTMESSAGE;
+                                        falseMessge.obj = "发布失败,网络链接可能已经断开,请重试";
+                                        handler.sendMessage(falseMessge);
+                                    }
+                                } catch (TimeoutException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                } catch (UnCurrentUserException e) {
+                                    //身份验证失败
+                                    disposeUnCurrentUser();
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }else {
+                        //内容为空提示
+                        Message emptyMessage = new Message();
+                        emptyMessage.what = SHOWTOASTMESSAGE;
+                        emptyMessage.obj = "标题和内容不能为空";
+                        handler.sendMessage(emptyMessage);
+                    }
+                }else {
+                    //进入离线模式
+                    Message message = new Message();
+                    message.what = 1;
+                    message.obj = "网络链接已经断开!进入离线模式";
+                    MainActivity.handler.sendMessage(message);
+                    BihuFragment.nowUser = null;
+                    MainActivity.mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.header.setImageResource(R.drawable.without_network);
                         }
                     });
-                }else {
-                    //内容为空提示
-                    Message emptyMessage = new Message();
-                    emptyMessage.what = SHOWTOASTMESSAGE;
-                    emptyMessage.obj = "标题和内容不能为空";
-                    handler.sendMessage(emptyMessage);
                 }
+
             }
         });
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -273,5 +285,29 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
         }
     }
 
-
+    private void disposeUnCurrentUser(){
+        Message message = new Message();
+        message.what = SHOWTOASTMESSAGE;
+        message.obj = "身份验证过期,请重新登录";
+        handler.sendMessage(message);
+        try {
+            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+            MainActivity.mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.header.setImageResource(R.drawable.defultuser);
+                }
+            });
+        } catch (JSONException e1) {
+            e1.printStackTrace();
+        } catch (TimeoutException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        Intent intent = new Intent(context,BihuLoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
 }

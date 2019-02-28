@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -65,89 +66,105 @@ public class ChangePasswordActivity extends AppCompatActivity {
         change.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                MainActivity.fixedThreadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        String [] value = {BihuFragment.nowUser.getUsername(),lastPassword.getText().toString()};
-                        try {
-                            BihuFragment.nowUser = BihuPostTools.login(value);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        } catch (TimeoutException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        if (BihuFragment.nowUser!=null){
-                            //输入旧密码正确
-                            if (password.getText().toString().equals(passwordAgain.getText().toString())){
-                                //两次新密码一致
-                                try {
-                                    if (BihuPostTools.changePassword(BihuFragment.nowUser,password.getText().toString())){
-                                        String [] newValue = {BihuFragment.nowUser.getUsername(),password.getText().toString()};
-                                        BihuFragment.nowUser = BihuPostTools.login(newValue);
-                                        MainActivity.editor.putString("lastUserPassword",password.getText().toString());
-                                        MainActivity.editor.commit();
-                                        //更改成功
-                                        mainHandler.post(new Runnable() {
+                if (BihuFragment.nowUser!=null){
+                    MainActivity.fixedThreadPool.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            String [] value = {BihuFragment.nowUser.getUsername(),lastPassword.getText().toString()};
+                            try {
+                                BihuFragment.nowUser = BihuPostTools.login(value);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (TimeoutException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (BihuFragment.nowUser!=null){
+                                //输入旧密码正确
+                                if (password.getText().toString().equals(passwordAgain.getText().toString())){
+                                    //两次新密码一致
+                                    try {
+                                        if (BihuPostTools.changePassword(BihuFragment.nowUser,password.getText().toString())){
+                                            String [] newValue = {BihuFragment.nowUser.getUsername(),password.getText().toString()};
+                                            BihuFragment.nowUser = BihuPostTools.login(newValue);
+                                            MainActivity.editor.putString("lastUserPassword",password.getText().toString());
+                                            MainActivity.editor.commit();
+                                            //更改成功
+                                            mainHandler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(context,"更改成功",Toast.LENGTH_SHORT).show();
+                                                    finish();
+                                                }
+                                            });
+                                        }else {
+                                            //不成功
+                                            mainHandler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(context,"更改失败,网络链接可能已经断开,请重试",Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    } catch (TimeoutException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    } catch (UnCurrentUserException e) {
+                                        e.printStackTrace();
+                                        handler.post(new Runnable() {
                                             @Override
                                             public void run() {
-                                                Toast.makeText(context,"更改成功",Toast.LENGTH_SHORT).show();
-                                                finish();
+                                                Toast.makeText(context,"身份验证过期,请重新登录",Toast.LENGTH_SHORT).show();
+                                                Intent intent = new Intent(context,BihuLoginActivity.class);
+                                                startActivity(intent);
                                             }
                                         });
-                                    }else {
-                                        //不成功
-                                        mainHandler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(context,"更改失败",Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
+
                                     }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                } catch (TimeoutException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } catch (UnCurrentUserException e) {
-                                    e.printStackTrace();
-                                    handler.post(new Runnable() {
+                                }else {
+                                    //两次新密码不一致
+                                    mainHandler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(context,"身份验证过期,请重新登录",Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent(context,BihuLoginActivity.class);
-                                            startActivity(intent);
+                                            password.setText("");
+                                            passwordAgain.setText("");
+                                            Toast.makeText(context,"两次密码不一致!请重新输入",Toast.LENGTH_SHORT).show();
                                         }
                                     });
-
                                 }
                             }else {
-                                //两次新密码不一致
+                                //输入旧密码错误
                                 mainHandler.post(new Runnable() {
                                     @Override
                                     public void run() {
+                                        lastPassword.setText("");
                                         password.setText("");
                                         passwordAgain.setText("");
-                                        Toast.makeText(context,"两次密码不一致!请重新输入",Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context,"旧密码错误或网络连接已断开",Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
-                        }else {
-                            //输入旧密码错误
-                            mainHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    lastPassword.setText("");
-                                    password.setText("");
-                                    passwordAgain.setText("");
-                                    Toast.makeText(context,"两次密码不一致!请重新输入",Toast.LENGTH_SHORT).show();
-                                }
-                            });
                         }
-                    }
-                });
+                    });
+                }else {
+                    //突然间没有网络链接
+                    Message message = new Message();
+                    message.what = 1;
+                    message.obj = "网络链接已经断开!进入离线模式";
+                    MainActivity.handler.sendMessage(message);
+                    BihuFragment.nowUser = null;
+                    MainActivity.mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.header.setImageResource(R.drawable.without_network);
+                        }
+                    });
+                }
+
             }
         });
     }

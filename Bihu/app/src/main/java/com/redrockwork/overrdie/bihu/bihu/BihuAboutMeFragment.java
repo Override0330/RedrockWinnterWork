@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 import com.redrockwork.overrdie.bihu.developtools.RecyclerViewMyLinearLayoutManager;
 
 import org.json.JSONException;
@@ -50,6 +51,7 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
             switch (msg.what){
                 case SETRECYCLERVIEWADAPTER:
                     initRecyclerView();
+                    swipeRefreshLayout.setRefreshing(false);
                     break;
                 case SHOWTOASTMESSAGE:
                     Toast.makeText(getContext(),(String)msg.obj,Toast.LENGTH_SHORT).show();
@@ -121,13 +123,9 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } catch (UnCurrentUserException e) {
+                                //身份验证过期
+                                disposeUnCurrentUser();
                                 e.printStackTrace();
-                                Message message = new Message();
-                                message.what = SHOWTOASTMESSAGE;
-                                message.obj = "身份验证过期,请重新登录";
-                                handler.sendMessage(message);
-                                Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                                startActivity(intent);
                             }
                         }
                     });
@@ -148,27 +146,26 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                 MainActivity.fixedThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            bihuQuestionArrayList = BihuPostTools.getFavoriteList(BihuFragment.nowUser,0,20);
-                            Collections.reverse(bihuQuestionArrayList);
-                            Message message = new Message();
-                            message.what = SETRECYCLERVIEWADAPTER;
-                            handler.sendMessage(message);
-                            swipeRefreshLayout.setRefreshing(false);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        } catch (TimeoutException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (UnCurrentUserException e) {
-                            e.printStackTrace();
-                            Message message = new Message();
-                            message.what = SHOWTOASTMESSAGE;
-                            message.obj = "身份验证过期,请重新登录";
-                            handler.sendMessage(message);
-                            Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                            startActivity(intent);
+                        if(BihuFragment.nowUser!=null){
+                            try {
+                                bihuQuestionArrayList = BihuPostTools.getFavoriteList(BihuFragment.nowUser,0,20);
+                                Collections.reverse(bihuQuestionArrayList);
+                                Message message = new Message();
+                                message.what = SETRECYCLERVIEWADAPTER;
+                                handler.sendMessage(message);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (TimeoutException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (UnCurrentUserException e) {
+                                //身份验证过期
+                                disposeUnCurrentUser();
+                                e.printStackTrace();
+                            }
+                        }else {
+                            //离线模式没有加载收藏列表的必要
                         }
                     }
                 });
@@ -191,16 +188,23 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (UnCurrentUserException e) {
+                        //身份验证过期
+                        disposeUnCurrentUser();
                         e.printStackTrace();
-                        Message message = new Message();
-                        message.what = SHOWTOASTMESSAGE;
-                        message.obj = "身份验证过期,请重新登录";
-                        handler.sendMessage(message);
-                        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                        startActivity(intent);
                     }
                 }else {
-
+                    //离线模式没有加载收藏列表的必要
+                    Message message = new Message();
+                    message.what = 1;
+                    message.obj = "网络链接已经断开!进入离线模式";
+                    MainActivity.handler.sendMessage(message);
+                    BihuFragment.nowUser = null;
+                    MainActivity.mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.header.setImageResource(R.drawable.without_network);
+                        }
+                    });
                 }
             }
         });
@@ -294,13 +298,9 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (UnCurrentUserException e) {
+                    //身份验证过期
+                    disposeUnCurrentUser();
                     e.printStackTrace();
-                    Message message = new Message();
-                    message.what = SHOWTOASTMESSAGE;
-                    message.obj = "身份验证过期,请重新登录";
-                    handler.sendMessage(message);
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                    startActivity(intent);
                 }
             }
         });
@@ -369,13 +369,9 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (UnCurrentUserException e) {
+                    //身份验证过期
+                    disposeUnCurrentUser();
                     e.printStackTrace();
-                    Message message = new Message();
-                    message.what = SHOWTOASTMESSAGE;
-                    message.obj = "身份验证过期,请重新登录";
-                    handler.sendMessage(message);
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                    startActivity(intent);
                 }
             }
         });
@@ -437,15 +433,40 @@ public class BihuAboutMeFragment extends Fragment implements BihuSquareAdapter.E
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (UnCurrentUserException e) {
+                    //身份验证过期
+                    disposeUnCurrentUser();
                     e.printStackTrace();
-                    Message message = new Message();
-                    message.what = SHOWTOASTMESSAGE;
-                    message.obj = "身份验证过期,请重新登录";
-                    handler.sendMessage(message);
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
-                    startActivity(intent);
                 }
             }
         });
+    }
+
+    private void disposeUnCurrentUser(){
+        if (BihuSquareFragment.isStartTheLoginActivity=true){
+            Message message = new Message();
+            message.what = SHOWTOASTMESSAGE;
+            message.obj = "身份验证过期,请重新登录";
+            handler.sendMessage(message);
+            try {
+                BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
+                MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,getContext());
+                MainActivity.mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.header.setImageResource(R.drawable.defultuser);
+                    }
+                });
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            } catch (TimeoutException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            BihuSquareFragment.isStartTheLoginActivity = false;
+            Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
     }
 }
