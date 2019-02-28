@@ -17,6 +17,17 @@
             android:layout_height="match_parent"
             android:padding="15dp"
             android:src="@drawable/back"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+        <ImageView
+            android:id="@+id/iv_browser_copy"
+            android:layout_width="60sp"
+            android:layout_height="match_parent"
+            android:gravity="end"
+            android:padding="15dp"
+            android:src="@drawable/copy"/>
     </LinearLayout>
     <ProgressBar
         android:id="@+id/pb_browser"
