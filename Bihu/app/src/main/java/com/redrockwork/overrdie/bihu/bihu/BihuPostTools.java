@@ -23,11 +23,11 @@ import java.util.concurrent.TimeoutException;
 import static android.content.ContentValues.TAG;
 
 public class BihuPostTools {
-    public static ArrayList<BihuQuestion> bihuQuestionArrayList = new ArrayList<>();
     public static ArrayList<BihuAnswer> bihuAnswerArrayList = new ArrayList<>();
     private static String baseUrl = "http://bihu.jay86.com/";
 
     public static ArrayList<BihuQuestion> initQuestionData(String token, String page, String count) throws JSONException, TimeoutException, IOException, UnCurrentUserException {
+        ArrayList<BihuQuestion> bihuQuestionArrayList = new ArrayList<>();
         try {
             String[] key = {"token", "page", "count"};
             String[] value = {token, page, count};
@@ -40,11 +40,11 @@ public class BihuPostTools {
             if (state == 200) {
                 String dataString = mainJson.getString("data");
                 JSONObject dataJson = new JSONObject(dataString);
-                int totalPage = dataJson.getInt("totalPage");
-                if (totalPage >= 2 && Integer.parseInt(page) < totalPage - 1) {
-                    initQuestionData(token, Integer.parseInt(page) + 1 + "", count);
-//            Collections.reverse(bihuQuestionArrayList);
-                }
+//                int totalPage = dataJson.getInt("totalPage");
+//                if (totalPage >= 2 && Integer.parseInt(page) < totalPage - 1) {
+//                    initQuestionData(token, Integer.parseInt(page) + 1 + "", count);
+////            Collections.reverse(bihuQuestionArrayList);
+//                }
                 JSONArray questionsJson = new JSONArray(dataJson.getString("questions"));
                 for (int i = questionsJson.length() - 1; i >= 0; i--) {
                     JSONObject questionJson = new JSONObject(questionsJson.get(i).toString());
@@ -95,16 +95,17 @@ public class BihuPostTools {
 
     //通过缓存的json获得数据
     public static ArrayList<BihuQuestion> initQuestionDataWithoutNetWork(String page) throws JSONException {
+        ArrayList<BihuQuestion> bihuQuestionArrayList = new ArrayList<>();
         Log.i(TAG, "initQuestionDataWithoutNetWork: 缓存的问题列表" + MainActivity.sharedPreferences.getString("bihuQuestionList" + page, ""));
         JSONObject mainJson = new JSONObject(MainActivity.sharedPreferences.getString("bihuQuestionList" + page, ""));
         int state = mainJson.getInt("status");
         if (state == 200) {
             String dataString = mainJson.getString("data");
             JSONObject dataJson = new JSONObject(dataString);
-            int totalPage = dataJson.getInt("totalPage");
-            if (totalPage >= 2 && Integer.parseInt(page) < totalPage - 1) {
-                initQuestionDataWithoutNetWork(Integer.parseInt(page) + 1 + "");
-            }
+//            int totalPage = dataJson.getInt("totalPage");
+//            if (totalPage >= 2 && Integer.parseInt(page) < totalPage - 1) {
+//                initQuestionDataWithoutNetWork(Integer.parseInt(page) + 1 + "");
+//            }
             JSONArray questionsJson = new JSONArray(dataJson.getString("questions"));
             for (int i = questionsJson.length() - 1; i >= 0; i--) {
                 JSONObject questionJson = new JSONObject(questionsJson.get(i).toString());

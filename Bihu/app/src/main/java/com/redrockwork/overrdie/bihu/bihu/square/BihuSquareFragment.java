@@ -15,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 
 import static android.content.ContentValues.TAG;
 
-public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.ExcitingClickListener , BihuSquareAdapter.NaiveClickListener ,BihuSquareAdapter.FavoriteClickListener {
+public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.ExcitingClickListener , BihuSquareAdapter.NaiveClickListener ,BihuSquareAdapter.FavoriteClickListener ,BihuSquareAdapter.MoreClickListener {
     private View bihuSquareView;
     public static ArrayList<BihuQuestion> bihuQuestionArrayList = new ArrayList<>();
     private RecyclerView squareRecyclerView;
@@ -55,6 +56,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
     private static final int SET_NAIVE_TEXT_VIEW_ICON = 3;
     private static final int CHANGE_IMAGES = 4;
     private static final int REFRESH = 5;
+    private int nowPage = 0;
     @SuppressLint("HandlerLeak")
     public Handler handler = new Handler(){
         @Override
@@ -120,7 +122,6 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                                BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
 //                                Log.d(TAG, "run: 使用默认账号登录");
 //                                Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
-                                BihuPostTools.bihuQuestionArrayList.clear();
                                 bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
                                 Message message = new Message();
                                 message.what = SET_RECYCLER_VIEW_ADAPTER;
@@ -128,7 +129,6 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                             } catch(UnknownHostException e){
                                 //刷新时突然没有了网络链接
                                 try {
-                                    BihuPostTools.bihuQuestionArrayList.clear();
                                     bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
                                     handler.post(new Runnable() {
                                         @Override
@@ -210,13 +210,29 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initRecyclerView(){
         squareRecyclerView = bihuSquareView.findViewById(R.id.rv_bihu_square);
+        squareRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (isSlideToBottom(recyclerView)) {
+                    //判断是否滑到底部
+                    getNextDate();
+                }
+            }
+        });
         //避免了RecyclerView的崩溃,在刷新时直接更新了list导致原RecyclerView爆炸,所以将新旧两个list分开
         Collections.reverse(bihuQuestionArrayList);
         ArrayList<BihuQuestion> now = new ArrayList<>();
         now.addAll(bihuQuestionArrayList);
-        bihuSquareAdapter = new BihuSquareAdapter(now,this.getContext(),mainHandler);
+        bihuSquareAdapter = new BihuSquareAdapter(now,this.getContext(),mainHandler,0);
         bihuSquareAdapter.setOnItemClickListener(new BihuSquareAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
@@ -230,6 +246,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         bihuSquareAdapter.setExcitingClickListener(this);
         bihuSquareAdapter.setNaiveClickListener(this);
         bihuSquareAdapter.setFavoriteClickListener(this);
+        bihuSquareAdapter.setMoreClickListener(this);
         RecyclerViewMyLinearLayoutManager linearLayoutManager = new RecyclerViewMyLinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
         squareRecyclerView.setLayoutManager(linearLayoutManager);
         squareRecyclerView.setAdapter(bihuSquareAdapter);
@@ -471,6 +488,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 
     }
     private void initQuestionList(){
+        nowPage = 0;
         if (BihuFragment.nowUser!=null){
             //网络正常的情况(不是无网络,也不是连接超时
             MainActivity.fixedThreadPool.execute(new Runnable() {
@@ -480,16 +498,14 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
 //                            BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                         Log.d(TAG, "run: 使用"+BihuFragment.nowUser.getUsername()+"登录");
                         Log.d(TAG, "run: 此时token"+BihuFragment.nowUser.getToken());
-                        BihuPostTools.bihuQuestionArrayList.clear();
-                        bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),"0","20");
+                        bihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),nowPage+"","20");
                         Message message = new Message();
                         message.what = SET_RECYCLER_VIEW_ADAPTER;
                         handler.sendMessage(message);
                     } catch(UnknownHostException e){
                         //刷新时突然没有了网络链接
                         try {
-                            BihuPostTools.bihuQuestionArrayList.clear();
-                            bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
+                            bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -527,8 +543,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         }else {
             //网络不正常的时候
             try {
-                BihuPostTools.bihuQuestionArrayList.clear();
-                bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork("0");
+                bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"0");
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -577,5 +592,65 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         Intent intent = new Intent(getContext(),BihuLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public void onMoreClickListener(final int position, BihuSquareAdapter.ViewHolder viewHolder) {
+
+    }
+
+    private void getNextDate(){
+        nowPage++;
+        MainActivity.fixedThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                //获得下一页数据
+                ArrayList<BihuQuestion> nextBihuQuestionArrayList = new ArrayList<>();
+                try {
+                    nextBihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),nowPage+"",20+"");
+                }catch (UnknownHostException e){
+                    try {
+                        nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                } catch (TimeoutException e) {
+                    e.printStackTrace();
+                    try {
+                        nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (UnCurrentUserException e) {
+                    e.printStackTrace();
+                    disposeUnCurrentUser();
+                }
+                Collections.reverse(nextBihuQuestionArrayList);
+                //将数据添加到Adapter里
+                ArrayList<BihuQuestion> newBihuQuestions = bihuSquareAdapter.getBihuQuestionArrayList();
+                newBihuQuestions.addAll(nextBihuQuestionArrayList);
+                //将数据添加到本Fragment中
+                bihuQuestionArrayList = newBihuQuestions;
+                bihuSquareAdapter.setBihuQuestionArrayList(newBihuQuestions);
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        bihuSquareAdapter.notifyDataSetChanged();
+                    }
+                });
+
+            }
+        });
+    }
+
+    protected boolean isSlideToBottom(RecyclerView recyclerView) {
+        if (recyclerView == null) return false;
+        if (recyclerView.computeVerticalScrollExtent() + recyclerView.computeVerticalScrollOffset() >= recyclerView.computeVerticalScrollRange())
+            return true;
+        return false;
     }
 }

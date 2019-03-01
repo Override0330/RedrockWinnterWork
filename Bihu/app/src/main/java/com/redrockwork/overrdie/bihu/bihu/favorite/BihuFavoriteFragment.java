@@ -225,7 +225,7 @@ public class BihuFavoriteFragment extends Fragment implements BihuSquareAdapter.
 
     private void initRecyclerView() {
         squareRecyclerView = bihuSquareView.findViewById(R.id.rv_bihu_favorite);
-        bihuSquareAdapter = new BihuSquareAdapter(bihuQuestionArrayList, this.getContext(), mainHandler);
+        bihuSquareAdapter = new BihuSquareAdapter(bihuQuestionArrayList, this.getContext(), mainHandler,1);
         bihuSquareAdapter.setOnItemClickListener(new BihuSquareAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {

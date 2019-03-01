@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.redrockwork.overrdie.bihu.MainActivity;
@@ -32,11 +34,21 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     private Context context;
     private android.os.Handler mainHandler;
     private int lastPosition = -1;
+    private int type;
 
-    public BihuSquareAdapter(ArrayList<BihuQuestion> bihuQuestionArrayList, Context context, android.os.Handler handler) {
+    public BihuSquareAdapter(ArrayList<BihuQuestion> bihuQuestionArrayList, Context context, android.os.Handler handler, int type) {
         this.bihuQuestionArrayList = bihuQuestionArrayList;
         this.context = context;
         this.mainHandler = handler;
+        this.type = type;
+    }
+
+    public ArrayList<BihuQuestion> getBihuQuestionArrayList() {
+        return bihuQuestionArrayList;
+    }
+
+    public void setBihuQuestionArrayList(ArrayList<BihuQuestion> bihuQuestionArrayList) {
+        this.bihuQuestionArrayList = bihuQuestionArrayList;
     }
 
     /**
@@ -86,7 +98,6 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
         final BihuQuestion bihuQuestion = bihuQuestionArrayList.get(position);
         viewHolder.title.setText(bihuQuestion.getTitle());
         viewHolder.content.setText(bihuQuestion.getAbstractContent());
-
         //选择显示更新时间还是发布时间
         if (bihuQuestion.getRecent().equals("null")) {
             viewHolder.time.setText("没有动态😣");
@@ -250,6 +261,20 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     /**
      * itme中的favorite点击事件的接口回调
      */
+    public interface MoreClickListener {
+        void onMoreClickListener(int position, ViewHolder viewHolder);
+    }
+
+    private MoreClickListener moreClickListener = null;
+
+    public void setMoreClickListener(MoreClickListener moreClickListener) {
+        this.moreClickListener = moreClickListener;
+    }
+
+
+    /**
+     * itme中的favorite点击事件的接口回调
+     */
     public interface FavoriteClickListener {
         void onFavoriteClickListener(int position, ViewHolder viewHolder);
     }
@@ -280,5 +305,6 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     public void update() {
         notifyDataSetChanged();
     }
+
 
 }
