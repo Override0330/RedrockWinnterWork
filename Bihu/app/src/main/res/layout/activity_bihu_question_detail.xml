@@ -47,7 +47,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="10dp">
+                    android:paddingLeft="20dp"
+                    android:paddingTop="15dp"
+                    android:paddingRight="20dp"
+                    android:paddingBottom="15dp">
 
                     <ImageView
                         android:id="@+id/iv_question_detail_author"
@@ -82,7 +85,8 @@
                     android:id="@+id/tv_question_detail_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="10dp"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp"
                     android:paddingTop="5dp"
                     android:paddingBottom="5dp"
                     android:text="这个是标题!"
@@ -94,13 +98,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp"
                     app:layout_constraintTop_toBottomOf="@+id/ll_question_detail_author">
                     <TextView
                         android:id="@+id/tv_question_detail_content"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
                         android:text="这里是正文!"
                         android:textSize="20dp"/>
                 </LinearLayout>
@@ -180,11 +186,10 @@
             android:layout_height="match_parent"
             android:src="@drawable/add_small"
             android:adjustViewBounds="true"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginLeft="10dp"
-            />
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="7dp"
+            android:layout_marginRight="1dp"/>
         <EditText
             android:id="@+id/et_answer_content"
             android:layout_width="match_parent"
@@ -200,10 +205,9 @@
             android:id="@+id/iv_answer_send"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginLeft="5dp"
+            android:layout_marginRight="7dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:adjustViewBounds="true"
             android:src="@drawable/send"/>
     </LinearLayout>

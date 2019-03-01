@@ -108,7 +108,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                         //去白边
                         imageView.setAdjustViewBounds(true);
                         //留白
-                        imageView.setPadding(0, 10, 20, 10);
+                        imageView.setPadding(0, 10, 0, 10);
                         images.addView(imageView, i + 1);
                         Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                         imageView.startAnimation(animation);
@@ -514,7 +514,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                 //去白边
                 imageView.setAdjustViewBounds(true);
                 //留白
-                imageView.setPadding(0, 10, 20, 10);
+                imageView.setPadding(0, 10, 0, 10);
                 images.addView(imageView);
             }
             MainActivity.fixedThreadPool.execute(new Runnable() {

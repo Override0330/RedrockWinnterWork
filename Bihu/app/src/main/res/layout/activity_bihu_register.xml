@@ -60,7 +60,6 @@
             app:layout_constraintHorizontal_bias="0.525"
             app:layout_constraintStart_toStartOf="@+id/textView"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
-
         <EditText
             android:id="@+id/et_register_username"
             android:layout_width="match_parent"
@@ -72,7 +71,8 @@
             android:layout_marginRight="30dp"
             android:background="@drawable/edittext_search"
             android:paddingLeft="10dp"
-            android:hint="请输入用户名"/>
+            android:hint="请输入用户名(限制12个字符)"
+            android:maxLength="12"/>
         <EditText
             android:id="@+id/et_register_password"
             android:layout_width="match_parent"

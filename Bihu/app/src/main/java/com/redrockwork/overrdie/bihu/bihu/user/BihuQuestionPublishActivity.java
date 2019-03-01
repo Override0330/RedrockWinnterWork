@@ -89,32 +89,18 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                     final String titleString = title.getText().toString();
                     final String contentString = content.getText().toString();
                     //加入问题图片的处理
-                    for (int i = 0; i < bitmapsArrayList.size(); i++) {
-                        final int finalI = i;
-                        final int finalI1 = i;
-                        MainActivity.fixedThreadPool.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                Bitmap bitmap = bitmapsArrayList.get(finalI);
-                                File file = MyImageTools.saveBitmapFile(bitmap, System.currentTimeMillis() + finalI1 + "");
-                                MyImageTools.postFileToQiniu(file, System.currentTimeMillis() + finalI1 + "");
-                                images.add("http://pnffhnnkk.bkt.clouddn.com/" + System.currentTimeMillis() + finalI1 + "");
+                    MainActivity.fixedThreadPool.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int i = 0; i < bitmapsArrayList.size(); i++) {
+                                Bitmap bitmap = bitmapsArrayList.get(i);
+                                String name  = System.currentTimeMillis() + i + "";
+                                File file = MyImageTools.saveBitmapFile(bitmap, name);
+                                MyImageTools.postFileToQiniu(file, name);
+                                images.add("http://pnffhnnkk.bkt.clouddn.com/" + name);
                             }
-                        });
-                    }
-                    //等待图片上传完毕
-                    while (images.size() != bitmapsArrayList.size()) {
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    //发布问题处理
-                    if (!titleString.equals("") && !contentString.equals("")) {
-                        MainActivity.fixedThreadPool.execute(new Runnable() {
-                            @Override
-                            public void run() {
+                            //发布问题处理
+                            if (!titleString.equals("") && !contentString.equals("")) {
                                 try {
                                     if (publishQuestion(titleString, contentString)) {
                                         Log.i("发布", "成功");
@@ -144,15 +130,15 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                                     disposeUnCurrentUser();
                                     e.printStackTrace();
                                 }
+                            } else {
+                                //内容为空提示
+                                Message emptyMessage = new Message();
+                                emptyMessage.what = SHOW_TOAST_MESSAGE;
+                                emptyMessage.obj = "标题和内容不能为空";
+                                handler.sendMessage(emptyMessage);
                             }
-                        });
-                    } else {
-                        //内容为空提示
-                        Message emptyMessage = new Message();
-                        emptyMessage.what = SHOW_TOAST_MESSAGE;
-                        emptyMessage.obj = "标题和内容不能为空";
-                        handler.sendMessage(emptyMessage);
-                    }
+                        }
+                    });
                 } else {
                     //进入离线模式
                     Message message = new Message();

@@ -217,6 +217,9 @@ public class PersonalCenterFragment extends Fragment {
         } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             userAvatar.setImageResource(R.drawable.defultuser);
             userName.setText("游客,点击头像登录");
+        } else {
+            //用户正常
+
         }
 
     }

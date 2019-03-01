@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
     public static TabLayout mTabLayout;
     public static ImageView header, naviagtionHeader;
-    private TextView userName;
+    public static TextView userName;
     public static TextView title;
     private static Context context;
     public static Handler mainHandler = new Handler();

@@ -74,6 +74,7 @@ public class BihuLoginActivity extends AppCompatActivity {
                                     @Override
                                     public void run() {
                                         Toast.makeText(context, "登录成功,正在初始化数据,请稍后", Toast.LENGTH_SHORT).show();
+                                        MainActivity.userName.setText(BihuFragment.nowUser.getUsername());
                                     }
                                 });
                                 Bitmap bitmap = MyImageTools.getBitmap(BihuFragment.nowUser.getAvatar());
@@ -153,6 +154,13 @@ public class BihuLoginActivity extends AppCompatActivity {
         if (isFromRegister) {
             isFromRegister = false;
             PersonalCenterFragment.isLogin = true;
+            Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+            MainActivity.header.setImageResource(R.drawable.defultuser);
+            MainActivity.header.startAnimation(animation);
+            MainActivity.naviagtionHeader.setImageResource(R.drawable.defultuser);
+            MainActivity.naviagtionHeader.startAnimation(animation);
+            MainActivity.userName.setText(BihuFragment.nowUser.getUsername());
             finish();
         }
         //nmd终于找到bug了,如果身份验证失败的话会导致nowUser不是null,在身份验证失败后加入一个login默认账号的逻辑就好了

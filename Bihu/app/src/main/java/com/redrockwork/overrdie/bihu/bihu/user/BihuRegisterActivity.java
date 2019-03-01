@@ -15,6 +15,7 @@ import com.redrockwork.overrdie.bihu.R;
 import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
 import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
 import com.redrockwork.overrdie.bihu.bihu.obj.User;
+import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 
 import org.json.JSONException;
 
@@ -40,45 +41,55 @@ public class BihuRegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (password.getText().toString().equals(passwordAgain.getText().toString())) {
-                    MainActivity.fixedThreadPool.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                String[] value = {username.getText().toString(), password.getText().toString()};
-                                User user = BihuPostTools.register(value);
-                                if (user != null) {
-                                    //成功
-                                    BihuFragment.nowUser = BihuPostTools.login(value);
-                                    MainActivity.editor.putString("lastUserName", username.getText().toString());
-                                    MainActivity.editor.putString("lastUserPassword", password.getText().toString());
-                                    MainActivity.editor.commit();
-                                    BihuLoginActivity.isFromRegister = true;
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(context, "注册成功", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                    finish();
-                                } else {
-                                    //失败
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(context, "注册失败", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                    if (username.getText().toString().toCharArray().length<12){
+                        MainActivity.fixedThreadPool.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    String[] value = {username.getText().toString(), password.getText().toString()};
+                                    User user = BihuPostTools.register(value);
+                                    if (user != null) {
+                                        //成功
+                                        BihuFragment.nowUser = BihuPostTools.login(value);
+                                        MainActivity.editor.putString("lastUserName", username.getText().toString());
+                                        MainActivity.editor.putString("lastUserPassword", password.getText().toString());
+                                        MainActivity.editor.commit();
+                                        MainActivity.avator = MyImageTools.getBitmap(BihuFragment.nowUser.getAvatar());
+                                        BihuLoginActivity.isFromRegister = true;
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(context, "注册成功", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                        finish();
+                                    } else {
+                                        //失败
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(context, "注册失败", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (TimeoutException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            } catch (TimeoutException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
                             }
-                        }
-                    });
-                } else {
+                        });
+                    }else {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "名字不要超过12个字符奥", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                } else{
                     Toast.makeText(context, "两次密码不一样奥", Toast.LENGTH_SHORT).show();
                     password.setText("");
                     passwordAgain.setText("");
