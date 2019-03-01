@@ -229,6 +229,19 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                                 //加载回答的图片
                             } catch (TimeoutException e) {
                                 e.printStackTrace();
+                                BihuPostTools.bihuAnswerArrayList.clear();
+                                try {
+                                    bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0", bihuQuestion.getId() + "");
+                                } catch (JSONException e1) {
+                                    e1.printStackTrace();
+                                }
+                                swipeRefreshLayout.setRefreshing(false);
+                                Message message = new Message();
+                                message.what = INIT_ANSWER_ADAPTER;
+                                handler.sendMessage(message);
+                                message.what = SHOW_TOAST_MESSAGE;
+                                message.obj = "网络链接超时";
+                                handler.sendMessage(message);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             } catch (IOException e) {

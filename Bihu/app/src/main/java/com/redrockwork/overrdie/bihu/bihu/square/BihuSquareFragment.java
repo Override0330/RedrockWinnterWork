@@ -543,7 +543,7 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         }else {
             //网络不正常的时候
             try {
-                bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"0");
+                bihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -604,30 +604,39 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
         MainActivity.fixedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                //获得下一页数据
                 ArrayList<BihuQuestion> nextBihuQuestionArrayList = new ArrayList<>();
-                try {
-                    nextBihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),nowPage+"",20+"");
-                }catch (UnknownHostException e){
+                if (BihuFragment.nowUser!=null){
+                    //获得下一页数据
+                    try {
+                        nextBihuQuestionArrayList = BihuPostTools.initQuestionData(BihuFragment.nowUser.getToken(),nowPage+"",20+"");
+                    }catch (UnknownHostException e){
+                        try {
+                            nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
+                        } catch (JSONException e1) {
+                            e1.printStackTrace();
+                        }
+                    } catch(JSONException e) {
+                        e.printStackTrace();
+                    } catch (TimeoutException e) {
+                        e.printStackTrace();
+                        try {
+                            nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
+                        } catch (JSONException e1) {
+                            e1.printStackTrace();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (UnCurrentUserException e) {
+                        e.printStackTrace();
+                        disposeUnCurrentUser();
+                    }
+
+                }else {
                     try {
                         nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch(JSONException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
-                    e.printStackTrace();
-                    try {
-                        nextBihuQuestionArrayList = BihuPostTools.initQuestionDataWithoutNetWork(nowPage+"");
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (UnCurrentUserException e) {
-                    e.printStackTrace();
-                    disposeUnCurrentUser();
                 }
                 Collections.reverse(nextBihuQuestionArrayList);
                 //将数据添加到Adapter里
@@ -642,7 +651,6 @@ public class BihuSquareFragment extends Fragment implements BihuSquareAdapter.Ex
                         bihuSquareAdapter.notifyDataSetChanged();
                     }
                 });
-
             }
         });
     }
