@@ -12,10 +12,10 @@ public class News {
     private String who;
     private String time;
 
-    public News(String desc, ArrayList<String> image, String url, String who, String time,ArrayList<ImageView> images) {
-        try{
-            this.desc = desc.substring(0,40)+"......";
-        }catch (Exception e){
+    public News(String desc, ArrayList<String> image, String url, String who, String time, ArrayList<ImageView> images) {
+        try {
+            this.desc = desc.substring(0, 40) + "......";
+        } catch (Exception e) {
             this.desc = desc;
         }
 

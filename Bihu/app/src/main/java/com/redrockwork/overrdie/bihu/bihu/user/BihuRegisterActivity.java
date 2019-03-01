@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.user;
 
 import android.content.Context;
 import android.os.Handler;
@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
+import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
+import com.redrockwork.overrdie.bihu.bihu.obj.User;
 
 import org.json.JSONException;
 
@@ -19,11 +22,12 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public class BihuRegisterActivity extends AppCompatActivity {
-    private EditText username,password,passwordAgain;
+    private EditText username, password, passwordAgain;
     private Button login;
     private ImageView back;
     private Handler handler = new Handler();
     private Context context = this;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,33 +39,33 @@ public class BihuRegisterActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (password.getText().toString().equals(passwordAgain.getText().toString())){
+                if (password.getText().toString().equals(passwordAgain.getText().toString())) {
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
                             try {
-                                String [] value = {username.getText().toString(),password.getText().toString()};
+                                String[] value = {username.getText().toString(), password.getText().toString()};
                                 User user = BihuPostTools.register(value);
-                                if (user!=null){
+                                if (user != null) {
                                     //成功
                                     BihuFragment.nowUser = BihuPostTools.login(value);
-                                    MainActivity.editor.putString("lastUserName",username.getText().toString());
-                                    MainActivity.editor.putString("lastUserPassword",password.getText().toString());
+                                    MainActivity.editor.putString("lastUserName", username.getText().toString());
+                                    MainActivity.editor.putString("lastUserPassword", password.getText().toString());
                                     MainActivity.editor.commit();
                                     BihuLoginActivity.isFromRegister = true;
                                     handler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(context,"注册成功",Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, "注册成功", Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                     finish();
-                                }else {
+                                } else {
                                     //失败
                                     handler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(context,"注册失败",Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, "注册失败", Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 }
@@ -74,8 +78,8 @@ public class BihuRegisterActivity extends AppCompatActivity {
                             }
                         }
                     });
-                }else {
-                    Toast.makeText(context,"两次密码不一样奥",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "两次密码不一样奥", Toast.LENGTH_SHORT).show();
                     password.setText("");
                     passwordAgain.setText("");
                 }

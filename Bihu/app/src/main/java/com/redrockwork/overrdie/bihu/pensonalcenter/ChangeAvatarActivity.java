@@ -31,19 +31,19 @@ public class ChangeAvatarActivity extends AppCompatActivity {
     }
 
     //打开相册的逻辑
-    public void openAlbum(){
+    public void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
-        startActivityForResult(intent,CHOOSE_PHOTO);
+        startActivityForResult(intent, CHOOSE_PHOTO);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if (grantResults.length > 0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openAlbum();
-                }else {
+                } else {
                     //Toast
                 }
                 break;
@@ -52,13 +52,13 @@ public class ChangeAvatarActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case CHOOSE_PHOTO:
-                if (resultCode==RESULT_OK){
-                    if (Build.VERSION.SDK_INT >=19){
+                if (resultCode == RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= 19) {
                         //4.4up
                         handleImageOnKitKat(data);
-                    }else{
+                    } else {
                         //4.4down
                         handlerImageBeforeKiKat(data);
                     }
@@ -67,48 +67,48 @@ public class ChangeAvatarActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void handleImageOnKitKat(Intent data){
+    private void handleImageOnKitKat(Intent data) {
         String imagePath = null;
         Uri uri = data.getData();
-        if (DocumentsContract.isDocumentUri(this,uri)){
+        if (DocumentsContract.isDocumentUri(this, uri)) {
             String docId = DocumentsContract.getDocumentId(uri);
-            if ("com.android.providers.media.documents".equals(uri.getAuthority())){
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
                 String id = docId.split(":")[1];//解析出数字格式的id
-                String selection = MediaStore.Images.Media._ID+"="+id;
-                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,selection);
-            }else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())){
-                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"),Long.valueOf(docId));
-                imagePath = getImagePath(contentUri,null);
+                String selection = MediaStore.Images.Media._ID + "=" + id;
+                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"), Long.valueOf(docId));
+                imagePath = getImagePath(contentUri, null);
             }
-        }else if ("content".equalsIgnoreCase(uri.getScheme())){
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
             //如果是content类型的Uri,则使用普通方式处理
-            imagePath = getImagePath(uri,null);
-        }else if ("file".equalsIgnoreCase(uri.getScheme())){
+            imagePath = getImagePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             imagePath = uri.getPath();
         }
         //根据图片路径添加图片displayImage
-        if (imagePath==null){
+        if (imagePath == null) {
             finish();
         }
         addImage(imagePath);
     }
 
-    private void handlerImageBeforeKiKat(Intent data){
+    private void handlerImageBeforeKiKat(Intent data) {
         Uri uri = data.getData();
-        String imagePath = getImagePath(uri,null);
-        if (imagePath==null){
+        String imagePath = getImagePath(uri, null);
+        if (imagePath == null) {
             finish();
         }
         //根据图片路径添加图片displayImage
         addImage(imagePath);
     }
 
-    private String getImagePath(Uri uri,String selection){
+    private String getImagePath(Uri uri, String selection) {
         String path = null;
         //通过Uri和selection来获取真实的图片路径
-        Cursor cursor = getContentResolver().query(uri,null,selection,null,null);
-        if(cursor !=null){
-            if (cursor.moveToFirst()){
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
             }
             cursor.close();
@@ -116,15 +116,15 @@ public class ChangeAvatarActivity extends AppCompatActivity {
         return path;
     }
 
-    private void addImage(String imagePath){
+    private void addImage(String imagePath) {
         Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-        if (bitmap!=null){
+        if (bitmap != null) {
             //获取图片成功
             PersonalCenterFragment.isChangeAvatar = true;
             PersonalCenterFragment.tempBitmap = bitmap;
-        }else {
+        } else {
             //获取图片失败
-            Toast.makeText(this,"从手机上获取图片失败,请从相册中选择图片",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "从手机上获取图片失败,请从相册中选择图片", Toast.LENGTH_SHORT).show();
         }
         finish();
     }

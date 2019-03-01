@@ -21,6 +21,7 @@ import com.redrockwork.overrdie.bihu.developtools.MyViewPagerAdapter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -37,10 +38,10 @@ public class XianduFragment extends Fragment {
     public static final int INIT_XIANDU = 1;
 
     @SuppressLint("HandlerLeak")
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case SET_TABLAYOUT:
                     initTabLayout();
                     break;
@@ -54,7 +55,7 @@ public class XianduFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        xianduView = inflater.inflate(R.layout.xiandu_main_fragment,container,false);
+        xianduView = inflater.inflate(R.layout.xiandu_main_fragment, container, false);
         xianduViewPager = xianduView.findViewById(R.id.vp_xiandu);
         MainActivity.title.setText("");
 //        final XianduNewsInitHelper xianduNewsInitHelper = new XianduNewsInitHelper(this.getContext());
@@ -67,7 +68,7 @@ public class XianduFragment extends Fragment {
                     Message message = new Message();
                     message.what = SET_TABLAYOUT;
                     handler.sendMessage(message);
-                }catch (UnknownHostException e){
+                } catch (UnknownHostException e) {
                     e.printStackTrace();
                     try {
                         initTabLayoutDataWithoutNetwork();
@@ -86,11 +87,11 @@ public class XianduFragment extends Fragment {
                 }
             }
         });
-        
+
         return xianduView;
     }
 
-    public void initTabLayoutData() throws JSONException, TimeoutException, IOException{
+    public void initTabLayoutData() throws JSONException, TimeoutException, IOException {
         HttpsRequestHelper httpsRequestHelper = new HttpsRequestHelper("http://gank.io/api/xiandu/categories");
         String jsonCategories = httpsRequestHelper.start().getJson();
 
@@ -100,25 +101,26 @@ public class XianduFragment extends Fragment {
         for (int i = 0; i < jsonArray.length(); i++) {
             String item = jsonArray.get(i).toString();
             JSONObject itemJson = new JSONObject(item);
-            categoriesArrayList.add(new Categories(itemJson.getString("name"),itemJson.getString("en_name")));
+            categoriesArrayList.add(new Categories(itemJson.getString("name"), itemJson.getString("en_name")));
         }
-        MainActivity.editor.putString("xianduTab",jsonCategories);
+        MainActivity.editor.putString("xianduTab", jsonCategories);
         MainActivity.editor.commit();
     }
+
     //断网情况处理
-    public void initTabLayoutDataWithoutNetwork() throws JSONException{
-        String jsonCategories = MainActivity.sharedPreferences.getString("xianduTab","");
+    public void initTabLayoutDataWithoutNetwork() throws JSONException {
+        String jsonCategories = MainActivity.sharedPreferences.getString("xianduTab", "");
         JSONObject jsonObject = new JSONObject(jsonCategories);
         String result = jsonObject.get("results").toString();
         JSONArray jsonArray = new JSONArray(result);
         for (int i = 0; i < jsonArray.length(); i++) {
             String item = jsonArray.get(i).toString();
             JSONObject itemJson = new JSONObject(item);
-            categoriesArrayList.add(new Categories(itemJson.getString("name"),itemJson.getString("en_name")));
+            categoriesArrayList.add(new Categories(itemJson.getString("name"), itemJson.getString("en_name")));
         }
     }
 
-    private void initTabLayout(){
+    private void initTabLayout() {
         xianduTablayout.removeAllTabs();
         xianduTablayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         for (int i = 0; i < categoriesArrayList.size(); i++) {
@@ -128,14 +130,14 @@ public class XianduFragment extends Fragment {
             XianduNewsFragment xianduNewsFragment = XianduNewsFragment.newIntance(categoriesArrayList.get(i).getEn_name());
             xianduFragments.add(xianduNewsFragment);
         }
-        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(),xianduFragments,titleArrayList);
+        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(), xianduFragments, titleArrayList);
         xianduTablayout.setupWithViewPager(xianduViewPager);
         xianduViewPager.setAdapter(myViewPagerAdapter);
     }
 }
 
 
-class Categories{
+class Categories {
     String name;
     String en_name;
 

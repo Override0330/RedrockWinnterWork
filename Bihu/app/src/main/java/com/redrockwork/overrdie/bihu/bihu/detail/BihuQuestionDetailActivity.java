@@ -1,8 +1,10 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.detail;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -20,7 +22,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -36,8 +37,17 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.bihu.obj.BihuAnswer;
+import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
+import com.redrockwork.overrdie.bihu.bihu.user.BihuLoginActivity;
+import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
+import com.redrockwork.overrdie.bihu.bihu.obj.BihuQuestion;
+import com.redrockwork.overrdie.bihu.bihu.UnCurrentUserException;
+import com.redrockwork.overrdie.bihu.bihu.obj.User;
+import com.redrockwork.overrdie.bihu.bihu.square.BihuSquareFragment;
 import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 import com.redrockwork.overrdie.bihu.developtools.RecyclerViewMyLinearLayoutManager;
 
@@ -45,16 +55,17 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
-public class BihuQuestionDetailActivity extends AppCompatActivity implements BihuAnswerAdapter.ExcitingClickListener,BihuAnswerAdapter.NaiveClickListener,BihuAnswerAdapter.BestClickListener {
-    private TextView author,title,content,time,exciting,naive,comment;
-    private ImageView authorAvatar,back,send,add;
-    private LinearLayout images,publishImages;
+public class BihuQuestionDetailActivity extends AppCompatActivity implements BihuAnswerAdapter.ExcitingClickListener, BihuAnswerAdapter.NaiveClickListener, BihuAnswerAdapter.BestClickListener, BihuAnswerAdapter.TextViewLongClickListener {
+    private TextView author, title, content, time, exciting, naive, comment;
+    private ImageView authorAvatar, back, send, add;
+    private LinearLayout images, publishImages;
     private EditText answerContent;
     private BihuQuestion bihuQuestion;
     private BihuAnswer bihuAnswer;
@@ -63,33 +74,33 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     private SwipeRefreshLayout swipeRefreshLayout;
     private ArrayList<BihuAnswer> bihuAnswerArrayList = new ArrayList<>();
     private ArrayList<String> answerImagesUrl = new ArrayList<>();
-    private ArrayList<Bitmap> publishBitmap= new ArrayList<>();
+    private ArrayList<Bitmap> publishBitmap = new ArrayList<>();
     private BihuAnswerAdapter.ViewHolder viewHolder;
     private Context context = this;
     private static final int CHOOSE_PHOTO = 0;
     private static final int SET_AUTHOR_AVATAR = 0;
-    private static final int INITQUESTIONIMAGES = 1;
-    private static final int INITANSWERADAPTER = 2;
-    private static final int SETQUESTIONEXCITINGTEXTVIEWICON = 3;
-    private static final int SETQUESTIONNAIVETEXTVIEWICON = 4;
-    private static final int SETANSWEREXCITINGTEXTVIEWICON = 5;
-    private static final int SETANSWERNAIVETEXTVIEWICON = 6;
-    private static final int SHOWTOASTMESSAGE = 7;
-    private static final int CHANGEBESTSTATE = 8;
+    private static final int INIT_QUESTION_IMAGES = 1;
+    private static final int INIT_ANSWER_ADAPTER = 2;
+    private static final int SET_QUESTION_EXCITING_TEXT_VIEW_ICON = 3;
+    private static final int SET_QUESTION_NAIVE_TEXT_VIEW_ICON = 4;
+    private static final int SET_ANSWER_EXCITING_TEXT_VIEW_ICON = 5;
+    private static final int SET_ANSWER_NAIVE_TEXT_VIEW_ICON = 6;
+    private static final int SHOW_TOAST_MESSAGE = 7;
+    private static final int CHANGE_BEST_STATE = 8;
     private static final int ADD_ANSWER = 9;
     @SuppressLint("HandlerLeak")
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case SET_AUTHOR_AVATAR:
                     Bitmap bitmap = (Bitmap) msg.obj;
                     authorAvatar.setImageBitmap(bitmap);
                     break;
-                case INITQUESTIONIMAGES:
+                case INIT_QUESTION_IMAGES:
                     ArrayList<Bitmap> bitmapArrayList = (ArrayList<Bitmap>) msg.obj;
                     for (int i = 0; i < bitmapArrayList.size(); i++) {
-                        if (bitmapArrayList.get(i)==null){
+                        if (bitmapArrayList.get(i) == null) {
                             break;
                         }
                         ImageView imageView = new ImageView(context);
@@ -97,105 +108,106 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                         //去白边
                         imageView.setAdjustViewBounds(true);
                         //留白
-                        imageView.setPadding(0,10,20,10);
-                        images.addView(imageView,i+1);
-                        Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                        imageView.setPadding(0, 10, 20, 10);
+                        images.addView(imageView, i + 1);
+                        Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                         imageView.startAnimation(animation);
-                        images.removeViewAt(images.getChildCount()-1);
+                        images.removeViewAt(images.getChildCount() - 1);
                     }
                     break;
-                case INITANSWERADAPTER:
+                case INIT_ANSWER_ADAPTER:
                     initAnswerAdapter();
                     swipeRefreshLayout.setRefreshing(false);
                     break;
-                case SETQUESTIONEXCITINGTEXTVIEWICON:
-                    Drawable excitingDrawable = (Drawable)msg.obj;
-                    excitingDrawable.setBounds(0,0,40,40);
-                    exciting.setCompoundDrawables(excitingDrawable,null,null,null);
+                case SET_QUESTION_EXCITING_TEXT_VIEW_ICON:
+                    Drawable excitingDrawable = (Drawable) msg.obj;
+                    excitingDrawable.setBounds(0, 0, 40, 40);
+                    exciting.setCompoundDrawables(excitingDrawable, null, null, null);
                     String nowExcitingCount;
                     //如果表示数值增加就是1,减少就是2
-                    if (msg.arg1==1){
-                        nowExcitingCount = Integer.parseInt(bihuQuestion.getExciting())+1+"";
+                    if (msg.arg1 == 1) {
+                        nowExcitingCount = Integer.parseInt(bihuQuestion.getExciting()) + 1 + "";
                         bihuQuestion.setExciting(nowExcitingCount);
-                    }else {
-                        nowExcitingCount = Integer.parseInt(bihuQuestion.getExciting())-1+"";
+                    } else {
+                        nowExcitingCount = Integer.parseInt(bihuQuestion.getExciting()) - 1 + "";
                         bihuQuestion.setExciting(nowExcitingCount);
                     }
-                    exciting.setText(nowExcitingCount+" 赞");
+                    exciting.setText(nowExcitingCount + " 赞");
                     break;
-                case SETQUESTIONNAIVETEXTVIEWICON:
-                    Drawable naiveDrawable = (Drawable)msg.obj;
-                    naiveDrawable.setBounds(0,0,40,40);
-                    naive.setCompoundDrawables(naiveDrawable,null,null,null);
+                case SET_QUESTION_NAIVE_TEXT_VIEW_ICON:
+                    Drawable naiveDrawable = (Drawable) msg.obj;
+                    naiveDrawable.setBounds(0, 0, 40, 40);
+                    naive.setCompoundDrawables(naiveDrawable, null, null, null);
                     String nowNaiveCount;
                     //如果表示数值增加就是1,减少就是2
-                    if (msg.arg1==1){
-                        nowNaiveCount = Integer.parseInt(bihuQuestion.getNaive())+1+"";
+                    if (msg.arg1 == 1) {
+                        nowNaiveCount = Integer.parseInt(bihuQuestion.getNaive()) + 1 + "";
                         bihuQuestion.setNaive(nowNaiveCount);
-                    }else {
-                        nowNaiveCount = Integer.parseInt(bihuQuestion.getNaive())-1+"";
+                    } else {
+                        nowNaiveCount = Integer.parseInt(bihuQuestion.getNaive()) - 1 + "";
                         bihuQuestion.setNaive(nowNaiveCount);
                     }
-                    naive.setText(nowNaiveCount+" 踩");
+                    naive.setText(nowNaiveCount + " 踩");
                     break;
-                case SETANSWEREXCITINGTEXTVIEWICON:
-                    Drawable excitingDrawable2 =(Drawable)msg.obj;
+                case SET_ANSWER_EXCITING_TEXT_VIEW_ICON:
+                    Drawable excitingDrawable2 = (Drawable) msg.obj;
                     bihuAnswer = bihuAnswerArrayList.get(msg.arg2);
-                    excitingDrawable2.setBounds(0,0,40,40);
-                    viewHolder.exciting.setCompoundDrawables(excitingDrawable2,null,null,null);
+                    excitingDrawable2.setBounds(0, 0, 40, 40);
+                    viewHolder.exciting.setCompoundDrawables(excitingDrawable2, null, null, null);
                     String nowAnswerExcitingCount;
                     //如果表示数值增加就是1,减少就是2
-                    if (msg.arg1==1){
-                        nowAnswerExcitingCount = Integer.parseInt(bihuAnswer.getExciting())+1+"";
+                    if (msg.arg1 == 1) {
+                        nowAnswerExcitingCount = Integer.parseInt(bihuAnswer.getExciting()) + 1 + "";
                         bihuAnswer.setExciting(nowAnswerExcitingCount);
-                    }else {
-                        nowAnswerExcitingCount = Integer.parseInt(bihuAnswer.getExciting())-1+"";
+                    } else {
+                        nowAnswerExcitingCount = Integer.parseInt(bihuAnswer.getExciting()) - 1 + "";
                         bihuAnswer.setExciting(nowAnswerExcitingCount);
                     }
-                    viewHolder.exciting.setText(nowAnswerExcitingCount+" 赞");
+                    viewHolder.exciting.setText(nowAnswerExcitingCount + " 赞");
                     break;
-                case SETANSWERNAIVETEXTVIEWICON:
-                    Drawable naiveDrawable2 =(Drawable)msg.obj;
+                case SET_ANSWER_NAIVE_TEXT_VIEW_ICON:
+                    Drawable naiveDrawable2 = (Drawable) msg.obj;
                     bihuAnswer = bihuAnswerArrayList.get(msg.arg2);
-                    naiveDrawable2.setBounds(0,0,40,40);
-                    viewHolder.naive.setCompoundDrawables(naiveDrawable2,null,null,null);
+                    naiveDrawable2.setBounds(0, 0, 40, 40);
+                    viewHolder.naive.setCompoundDrawables(naiveDrawable2, null, null, null);
                     String nowAnswerNaiveCount;
                     //如果表示数值增加就是1,减少就是2
-                    if (msg.arg1==1){
-                        nowAnswerNaiveCount = Integer.parseInt(bihuAnswer.getNaive())+1+"";
+                    if (msg.arg1 == 1) {
+                        nowAnswerNaiveCount = Integer.parseInt(bihuAnswer.getNaive()) + 1 + "";
                         bihuAnswer.setNaive(nowAnswerNaiveCount);
-                    }else {
-                        nowAnswerNaiveCount = Integer.parseInt(bihuAnswer.getNaive())-1+"";
+                    } else {
+                        nowAnswerNaiveCount = Integer.parseInt(bihuAnswer.getNaive()) - 1 + "";
                         bihuAnswer.setNaive(nowAnswerNaiveCount);
                     }
-                    viewHolder.naive.setText(nowAnswerNaiveCount+" 踩");
+                    viewHolder.naive.setText(nowAnswerNaiveCount + " 踩");
                     break;
-                case SHOWTOASTMESSAGE:
+                case SHOW_TOAST_MESSAGE:
                     swipeRefreshLayout.setRefreshing(false);
-                    String message = (String)msg.obj;
-                    Toast.makeText(context,message,Toast.LENGTH_SHORT).show();
-                    if (msg.arg1==0){
+                    String message = (String) msg.obj;
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                    if (msg.arg1 == 0) {
                         answerContent.setText("");
                         publishImages.removeAllViews();
                         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
                     }
                     break;
-                case CHANGEBESTSTATE:
-                    BihuAnswerAdapter.ViewHolder viewHolder = (BihuAnswerAdapter.ViewHolder)msg.obj;
+                case CHANGE_BEST_STATE:
+                    BihuAnswerAdapter.ViewHolder viewHolder = (BihuAnswerAdapter.ViewHolder) msg.obj;
                     viewHolder.best.setImageResource(R.drawable.best);
-                    viewHolder.best.setPadding(0,0,0,0);
+                    viewHolder.best.setPadding(0, 0, 0, 0);
                     bihuAnswerArrayList.get(msg.arg1).setBest("1");
                     break;
                 case ADD_ANSWER:
-                    bihuAnswerAdapter.addItem((BihuAnswer)msg.obj);
+                    bihuAnswerAdapter.addItem((BihuAnswer) msg.obj);
             }
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
-        int index = intent.getIntExtra("thisQuestionIndex",0);
+        int index = intent.getIntExtra("thisQuestionIndex", 0);
         bihuQuestion = BihuSquareFragment.bihuQuestionArrayList.get(index);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bihu_question_detail);
@@ -204,15 +216,15 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (BihuFragment.nowUser!=null){
+                if (BihuFragment.nowUser != null) {
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 //加载回答的文字信息
-                                initAnswer(BihuFragment.nowUser,"0","20",bihuQuestion.getId());
+                                initAnswer(BihuFragment.nowUser, "0", "20", bihuQuestion.getId());
                                 Message message = new Message();
-                                message.what = INITANSWERADAPTER;
+                                message.what = INIT_ANSWER_ADAPTER;
                                 handler.sendMessage(message);
                                 //加载回答的图片
                             } catch (TimeoutException e) {
@@ -228,22 +240,13 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                             }
                         }
                     });
-                }else {
+                } else {
                     try {
                         BihuPostTools.bihuAnswerArrayList.clear();
-                        bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0",bihuQuestion.getId()+"");
-                        Collections.reverse(bihuAnswerArrayList);
-                        //最笨的算法置顶采纳
-                        for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
-                            if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
-                                BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
-                                bihuAnswerArrayList.remove(i);
-                                bihuAnswerArrayList.add(0,bestAnswer);
-                            }
-                        }
+                        bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0", bihuQuestion.getId() + "");
                         swipeRefreshLayout.setRefreshing(false);
                         Message message = new Message();
-                        message.what = INITANSWERADAPTER;
+                        message.what = INIT_ANSWER_ADAPTER;
                         handler.sendMessage(message);
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -254,7 +257,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         initView();
     }
 
-    private void initView(){
+    private void initView() {
         answerContent = findViewById(R.id.et_answer_content);
         answerContent.clearFocus();
         publishImages = findViewById(R.id.ll_answer_images);
@@ -262,29 +265,29 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
+                if (BihuFragment.nowUser == null) {
                     //首先进行nowUser是否为null判断避免报错
-                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                    Intent intent = new Intent(context, BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
+                } else {
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
-                            if (answer()){
+                            if (answer()) {
                                 //回答成功
                                 Message successfulMessage = new Message();
-                                successfulMessage.what = SHOWTOASTMESSAGE;
+                                successfulMessage.what = SHOW_TOAST_MESSAGE;
                                 //成功传入0
                                 successfulMessage.arg1 = 0;
                                 successfulMessage.obj = "回答成功";
                                 handler.sendMessage(successfulMessage);
-                            }else {
+                            } else {
                                 //回答失败
                                 Message falseMessage = new Message();
-                                falseMessage.what = SHOWTOASTMESSAGE;
+                                falseMessage.what = SHOW_TOAST_MESSAGE;
                                 //失败传入1
                                 falseMessage.arg1 = 1;
                                 falseMessage.obj = "回答失败,网络链接可能已经断开";
@@ -301,11 +304,15 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"点击了添加图片的按钮",Toast.LENGTH_SHORT).show();
-                if (ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
-                    ActivityCompat.requestPermissions((Activity) context,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-                }else {
-                    openAlbum();
+                if (publishBitmap.size() < 6) {
+//                    Toast.makeText(context,"点击了添加图片的按钮",Toast.LENGTH_SHORT).show();
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    } else {
+                        openAlbum();
+                    }
+                } else {
+                    Toast.makeText(context, "不能再加了奥,最多只能添加5张图片", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -320,7 +327,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         author.setText(bihuQuestion.getAuthorName());
         authorAvatar = findViewById(R.id.iv_question_detail_author);
         //先设置默认头像
-        Bitmap bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+        Bitmap bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
         bitmap = MyImageTools.cutToCircle(bitmap);
         authorAvatar.setImageBitmap(bitmap);
         //加载提问者头像
@@ -328,7 +335,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
             @Override
             public void run() {
                 Bitmap bitmap = MyImageTools.getBitmap(bihuQuestion.getAuthorAvatar());
-                if (bitmap!=null){
+                if (bitmap != null) {
                     bitmap = MyImageTools.cutToCircle(bitmap);
                     Message message = new Message();
                     message.what = SET_AUTHOR_AVATAR;
@@ -341,61 +348,72 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         title.setText(bihuQuestion.getTitle());
         content = findViewById(R.id.tv_question_detail_content);
         content.setText(bihuQuestion.getContent());
-        time =findViewById(R.id.tv_question_detail_time);
+        content.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                ClipboardManager mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData mClipData;
+                mClipData = ClipData.newPlainText("content", content.getText().toString());
+                mClipboardManager.setPrimaryClip(mClipData);
+                Toast.makeText(context, "已复制问题内容", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
+        time = findViewById(R.id.tv_question_detail_time);
         time.setText(bihuQuestion.getTime());
         comment = findViewById(R.id.tv_question_detail_comment_count);
-        comment.setText(bihuQuestion.getComment()+" 回答");
+        comment.setText(bihuQuestion.getComment() + " 回答");
         images = findViewById(R.id.ll_question_detail_content);
 
         //设置赞的点击事件
         exciting = findViewById(R.id.tv_question_detail_exciting);
-        exciting.setText(bihuQuestion.getExciting()+" 赞");
-        if (bihuQuestion.getIs_exciting().equals("false")){
-            Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_unfill);
-            excitingDrawable.setBounds(0,0,40,40);
-            exciting.setCompoundDrawables(excitingDrawable,null,null,null);
-        }else {
-            Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_fill);
-            excitingDrawable.setBounds(0,0,40,40);
-            exciting.setCompoundDrawables(excitingDrawable,null,null,null);
+        exciting.setText(bihuQuestion.getExciting() + " 赞");
+        if (bihuQuestion.getIs_exciting().equals("false")) {
+            Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_unfill);
+            excitingDrawable.setBounds(0, 0, 40, 40);
+            exciting.setCompoundDrawables(excitingDrawable, null, null, null);
+        } else {
+            Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_fill);
+            excitingDrawable.setBounds(0, 0, 40, 40);
+            exciting.setCompoundDrawables(excitingDrawable, null, null, null);
         }
         exciting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
+                if (BihuFragment.nowUser == null) {
                     //首先进行nowUser是否为null判断避免报错
-                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                    Intent intent = new Intent(context, BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
+                } else {
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
-                            try{
-                                if (bihuQuestion.getIs_exciting().equals("false")){
-                                    if (BihuPostTools.exciting(BihuFragment.nowUser,bihuQuestion.getId(),1)){
+                            try {
+                                if (bihuQuestion.getIs_exciting().equals("false")) {
+                                    if (BihuPostTools.exciting(BihuFragment.nowUser, bihuQuestion.getId(), 1)) {
                                         bihuQuestion.setIs_exciting("true");
-                                        Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_fill);
+                                        Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_fill);
                                         Message message = new Message();
-                                        message.what = SETQUESTIONEXCITINGTEXTVIEWICON;
+                                        message.what = SET_QUESTION_EXCITING_TEXT_VIEW_ICON;
                                         message.obj = excitingDrawable;
                                         message.arg1 = 1;
                                         handler.sendMessage(message);
-                                    }else {
+                                    } else {
                                         //出错
                                     }
-                                }else {
-                                    if (BihuPostTools.cancelExciting(BihuFragment.nowUser,bihuQuestion.getId(),1)){
+                                } else {
+                                    if (BihuPostTools.cancelExciting(BihuFragment.nowUser, bihuQuestion.getId(), 1)) {
                                         bihuQuestion.setIs_exciting("false");
-                                        Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_unfill);
+                                        Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_unfill);
                                         Message message = new Message();
-                                        message.what = SETQUESTIONEXCITINGTEXTVIEWICON;
+                                        message.what = SET_QUESTION_EXCITING_TEXT_VIEW_ICON;
                                         message.obj = excitingDrawable;
                                         message.arg1 = 2;
                                         handler.sendMessage(message);
-                                    }else {
+                                    } else {
                                         //出错
                                     }
                                 }
@@ -418,53 +436,53 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
 
         //设置踩的点击事件
         naive = findViewById(R.id.tv_question_detail_naive);
-        naive.setText(bihuQuestion.getNaive()+" 踩");
-        if (bihuQuestion.getIs_navie().equals("false")){
-            Drawable naiveDrawable = ContextCompat.getDrawable(context,R.drawable.naive_unfill);
-            naiveDrawable.setBounds(0,0,40,40);
-            naive.setCompoundDrawables(naiveDrawable,null,null,null);
-        }else {
-            Drawable naiveDrawable = ContextCompat.getDrawable(context,R.drawable.naive_fill);
-            naiveDrawable.setBounds(0,0,40,40);
-            naive.setCompoundDrawables(naiveDrawable,null,null,null);
+        naive.setText(bihuQuestion.getNaive() + " 踩");
+        if (bihuQuestion.getIs_navie().equals("false")) {
+            Drawable naiveDrawable = ContextCompat.getDrawable(context, R.drawable.naive_unfill);
+            naiveDrawable.setBounds(0, 0, 40, 40);
+            naive.setCompoundDrawables(naiveDrawable, null, null, null);
+        } else {
+            Drawable naiveDrawable = ContextCompat.getDrawable(context, R.drawable.naive_fill);
+            naiveDrawable.setBounds(0, 0, 40, 40);
+            naive.setCompoundDrawables(naiveDrawable, null, null, null);
         }
         naive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
+                if (BihuFragment.nowUser == null) {
                     //首先进行nowUser是否为null判断避免报错
-                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                    Intent intent = new Intent(context, BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
+                } else {
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
-                            try{
-                                if (bihuQuestion.getIs_navie().equals("false")){
-                                    if (BihuPostTools.naive(BihuFragment.nowUser,bihuQuestion.getId(),1)){
+                            try {
+                                if (bihuQuestion.getIs_navie().equals("false")) {
+                                    if (BihuPostTools.naive(BihuFragment.nowUser, bihuQuestion.getId(), 1)) {
                                         bihuQuestion.setIs_navie("true");
-                                        Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.naive_fill);
+                                        Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.naive_fill);
                                         Message message = new Message();
-                                        message.what = SETQUESTIONNAIVETEXTVIEWICON;
+                                        message.what = SET_QUESTION_NAIVE_TEXT_VIEW_ICON;
                                         message.obj = excitingDrawable;
                                         message.arg1 = 1;
                                         handler.sendMessage(message);
-                                    }else {
+                                    } else {
                                         //出错
                                     }
-                                }else {
-                                    if (BihuPostTools.cancelNaive(BihuFragment.nowUser,bihuQuestion.getId(),1)){
+                                } else {
+                                    if (BihuPostTools.cancelNaive(BihuFragment.nowUser, bihuQuestion.getId(), 1)) {
                                         bihuQuestion.setIs_navie("false");
-                                        Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.naive_unfill);
+                                        Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.naive_unfill);
                                         Message message = new Message();
-                                        message.what = SETQUESTIONNAIVETEXTVIEWICON;
+                                        message.what = SET_QUESTION_NAIVE_TEXT_VIEW_ICON;
                                         message.obj = excitingDrawable;
                                         message.arg1 = 2;
                                         handler.sendMessage(message);
-                                    }else {
+                                    } else {
                                         //出错
                                     }
                                 }
@@ -488,15 +506,15 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
 
 
         //加载问题的图像
-        if (!bihuQuestion.getImageUrl().equals("null")){
-            final String [] imagesUrlArray = bihuQuestion.getImageUrl().split(",");
+        if (!bihuQuestion.getImageUrl().equals("null")) {
+            final String[] imagesUrlArray = bihuQuestion.getImageUrl().split(",");
             for (int i = 0; i < imagesUrlArray.length; i++) {
                 ImageView imageView = new ImageView(this);
                 imageView.setImageResource(R.drawable.icon_1024);
                 //去白边
                 imageView.setAdjustViewBounds(true);
                 //留白
-                imageView.setPadding(0,10,20,10);
+                imageView.setPadding(0, 10, 20, 10);
                 images.addView(imageView);
             }
             MainActivity.fixedThreadPool.execute(new Runnable() {
@@ -508,7 +526,7 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                         bitmapArrayList.add(bitmap);
                     }
                     Message message = new Message();
-                    message.what = INITQUESTIONIMAGES;
+                    message.what = INIT_QUESTION_IMAGES;
                     message.obj = bitmapArrayList;
                     handler.sendMessage(message);
                 }
@@ -516,15 +534,15 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         }
         //加载回答
         swipeRefreshLayout.setRefreshing(true);
-        if (BihuFragment.nowUser!=null){
+        if (BihuFragment.nowUser != null) {
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         //加载回答的文字信息
-                        initAnswer(BihuFragment.nowUser,"0","20",bihuQuestion.getId());
+                        initAnswer(BihuFragment.nowUser, "0", "20", bihuQuestion.getId());
                         Message message = new Message();
-                        message.what = INITANSWERADAPTER;
+                        message.what = INIT_ANSWER_ADAPTER;
                         handler.sendMessage(message);
                         //加载回答的图片
                     } catch (TimeoutException e) {
@@ -540,21 +558,13 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
                     }
                 }
             });
-        }else {
+        } else {
             try {
                 BihuPostTools.bihuAnswerArrayList.clear();
-                bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0",bihuQuestion.getId()+"");
+                bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0", bihuQuestion.getId() + "");
                 Collections.reverse(bihuAnswerArrayList);
-                //最笨的算法置顶采纳
-                for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
-                    if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
-                        BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
-                        bihuAnswerArrayList.remove(i);
-                        bihuAnswerArrayList.add(0,bestAnswer);
-                    }
-                }
                 Message message = new Message();
-                message.what = INITANSWERADAPTER;
+                message.what = INIT_ANSWER_ADAPTER;
                 handler.sendMessage(message);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -563,29 +573,44 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
 
     }
 
-    private void initAnswer(User user,String page,String count,String qid) throws TimeoutException, JSONException, IOException, UnCurrentUserException {
+    private void initAnswer(User user, String page, String count, String qid) throws TimeoutException, JSONException, IOException, UnCurrentUserException {
         BihuPostTools.bihuAnswerArrayList.clear();
-        bihuAnswerArrayList = BihuPostTools.getAnswerList(user,page,count,qid);
-        Collections.reverse(bihuAnswerArrayList);
-        //最笨的算法置顶采纳
-        for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
-            if (!bihuAnswerArrayList.get(i).getBest().equals("0")){
-                BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
-                bihuAnswerArrayList.remove(i);
-                bihuAnswerArrayList.add(0,bestAnswer);
+        try {
+            bihuAnswerArrayList = BihuPostTools.getAnswerList(user, page, count, qid);
+        } catch (UnknownHostException e) {
+            try {
+                BihuPostTools.bihuAnswerArrayList.clear();
+                bihuAnswerArrayList = BihuPostTools.getAnswerListWithoutNetwork("0", bihuQuestion.getId() + "");
+                swipeRefreshLayout.setRefreshing(false);
+                Message message = new Message();
+                message.what = INIT_ANSWER_ADAPTER;
+                handler.sendMessage(message);
+            } catch (JSONException e1) {
+                e1.printStackTrace();
             }
         }
+
 
 //        Collections.reverse(bihuAnswerArrayList);
     }
 
-    private void initAnswerAdapter(){
+    private void initAnswerAdapter() {
         bihuAnswerList = findViewById(R.id.rv_bihu_answer);
-        bihuAnswerAdapter = new BihuAnswerAdapter(bihuAnswerArrayList,this,handler,bihuQuestion.getAuthorId());
+        Collections.reverse(bihuAnswerArrayList);
+        //最笨的算法置顶采纳
+        for (int i = 0; i < bihuAnswerArrayList.size(); i++) {
+            if (!bihuAnswerArrayList.get(i).getBest().equals("0")) {
+                BihuAnswer bestAnswer = bihuAnswerArrayList.get(i);
+                bihuAnswerArrayList.remove(i);
+                bihuAnswerArrayList.add(0, bestAnswer);
+            }
+        }
+        bihuAnswerAdapter = new BihuAnswerAdapter(bihuAnswerArrayList, this, handler, bihuQuestion.getAuthorId());
         bihuAnswerAdapter.setExcitingClickListener(this);
         bihuAnswerAdapter.setNaiveClickListener(this);
         bihuAnswerAdapter.setBestClickListener(this);
-        RecyclerViewMyLinearLayoutManager layoutManager = new RecyclerViewMyLinearLayoutManager(context){
+        bihuAnswerAdapter.setTextViewLongClickListener(this);
+        RecyclerViewMyLinearLayoutManager layoutManager = new RecyclerViewMyLinearLayoutManager(context) {
             @Override
             public boolean canScrollVertically() {
                 return false;
@@ -600,44 +625,44 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     //回答的点赞事件
     @Override
     public void onExcitingClickListener(final int position, BihuAnswerAdapter.ViewHolder viewHolder) {
-        if (BihuFragment.nowUser==null){
+        if (BihuFragment.nowUser == null) {
             //首先进行nowUser是否为null判断避免报错
-            Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+            Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+        } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             //加载登录界面
-            Intent intent = new Intent(context,BihuLoginActivity.class);
+            Intent intent = new Intent(context, BihuLoginActivity.class);
             startActivity(intent);
-        }else {
+        } else {
             this.viewHolder = viewHolder;
             final BihuAnswer bihuAnswer = bihuAnswerArrayList.get(position);
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try{
-                        if (bihuAnswer.getIsExciting().equals("false")){
-                            if (BihuPostTools.exciting(BihuFragment.nowUser,bihuAnswer.getId()+"",2)){
+                    try {
+                        if (bihuAnswer.getIsExciting().equals("false")) {
+                            if (BihuPostTools.exciting(BihuFragment.nowUser, bihuAnswer.getId() + "", 2)) {
                                 bihuAnswer.setIsExciting("true");
-                                Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_fill);
+                                Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_fill);
                                 Message message = new Message();
-                                message.what = SETANSWEREXCITINGTEXTVIEWICON;
+                                message.what = SET_ANSWER_EXCITING_TEXT_VIEW_ICON;
                                 message.obj = excitingDrawable;
                                 message.arg1 = 1;
                                 message.arg2 = position;
                                 handler.sendMessage(message);
-                            }else {
+                            } else {
                                 //出错
                             }
-                        }else {
-                            if (BihuPostTools.cancelExciting(BihuFragment.nowUser,bihuAnswer.getId()+"",2)){
+                        } else {
+                            if (BihuPostTools.cancelExciting(BihuFragment.nowUser, bihuAnswer.getId() + "", 2)) {
                                 bihuAnswer.setIsExciting("false");
-                                Drawable excitingDrawable = ContextCompat.getDrawable(context,R.drawable.exciting_unfill);
+                                Drawable excitingDrawable = ContextCompat.getDrawable(context, R.drawable.exciting_unfill);
                                 Message message = new Message();
-                                message.what = SETANSWEREXCITINGTEXTVIEWICON;
+                                message.what = SET_ANSWER_EXCITING_TEXT_VIEW_ICON;
                                 message.obj = excitingDrawable;
                                 message.arg1 = 2;
                                 message.arg2 = position;
                                 handler.sendMessage(message);
-                            }else {
+                            } else {
                                 //出错
                             }
                         }
@@ -656,47 +681,48 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
             });
         }
     }
+
     //回答的踩事件
     @Override
     public void onNaiveClickListener(final int position, BihuAnswerAdapter.ViewHolder viewHolder) {
-        if (BihuFragment.nowUser==null){
+        if (BihuFragment.nowUser == null) {
             //首先进行nowUser是否为null判断避免报错
-            Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+            Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+        } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             //加载登录界面
-            Intent intent = new Intent(context,BihuLoginActivity.class);
+            Intent intent = new Intent(context, BihuLoginActivity.class);
             startActivity(intent);
-        }else{
+        } else {
             this.viewHolder = viewHolder;
             final BihuAnswer bihuAnswer = bihuAnswerArrayList.get(position);
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try{
-                        if (bihuAnswer.getIsNaive().equals("false")){
-                            if (BihuPostTools.naive(BihuFragment.nowUser,bihuAnswer.getId()+"",2)){
+                    try {
+                        if (bihuAnswer.getIsNaive().equals("false")) {
+                            if (BihuPostTools.naive(BihuFragment.nowUser, bihuAnswer.getId() + "", 2)) {
                                 bihuAnswer.setIsNaive("true");
-                                Drawable naiveDrawable = ContextCompat.getDrawable(context,R.drawable.naive_fill);
+                                Drawable naiveDrawable = ContextCompat.getDrawable(context, R.drawable.naive_fill);
                                 Message message = new Message();
-                                message.what = SETANSWERNAIVETEXTVIEWICON;
+                                message.what = SET_ANSWER_NAIVE_TEXT_VIEW_ICON;
                                 message.obj = naiveDrawable;
                                 message.arg1 = 1;
                                 message.arg2 = position;
                                 handler.sendMessage(message);
-                            }else {
+                            } else {
                                 //出错
                             }
-                        }else {
-                            if (BihuPostTools.cancelNaive(BihuFragment.nowUser,bihuAnswer.getId()+"",2)){
+                        } else {
+                            if (BihuPostTools.cancelNaive(BihuFragment.nowUser, bihuAnswer.getId() + "", 2)) {
                                 bihuAnswer.setIsNaive("false");
-                                Drawable naiveDrawable = ContextCompat.getDrawable(context,R.drawable.naive_unfill);
+                                Drawable naiveDrawable = ContextCompat.getDrawable(context, R.drawable.naive_unfill);
                                 Message message = new Message();
-                                message.what = SETANSWERNAIVETEXTVIEWICON;
+                                message.what = SET_ANSWER_NAIVE_TEXT_VIEW_ICON;
                                 message.obj = naiveDrawable;
                                 message.arg1 = 2;
                                 message.arg2 = position;
                                 handler.sendMessage(message);
-                            }else {
+                            } else {
                                 //出错
                             }
                         }
@@ -716,26 +742,26 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         }
 
     }
+
     //发布回答的点击事件
-    private boolean answer(){
+    private boolean answer() {
         final Boolean[] result = {false};
-        final String answer= answerContent.getText().toString();
-        try{
-            if (publishBitmap.size()!=0){
+        final String answer = answerContent.getText().toString();
+        try {
+            if (publishBitmap.size() != 0) {
                 for (int i = 0; i < publishBitmap.size(); i++) {
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String fileName = "qid_"+bihuQuestion.getId()+"author_"+BihuFragment.nowUser.getUsername()+"time_"+df.format(new Date())+"picId_"+i;
+                    String fileName = "qid_" + bihuQuestion.getId() + "author_" + BihuFragment.nowUser.getUsername() + "time_" + System.currentTimeMillis() + "picId_" + i;
                     Bitmap bitmap = publishBitmap.get(i);
-                    File file = MyImageTools.saveBitmapFile(bitmap,fileName);
-                    MyImageTools.postFileToQiniu(file,fileName);
-                    answerImagesUrl.add("http://pnffhnnkk.bkt.clouddn.com/"+fileName);
-                    result[0] = BihuPostTools.answer(BihuFragment.nowUser,Integer.parseInt(bihuQuestion.getId()),answer,answerImagesUrl);
+                    File file = MyImageTools.saveBitmapFile(bitmap, fileName);
+                    MyImageTools.postFileToQiniu(file, fileName);
+                    answerImagesUrl.add("http://pnffhnnkk.bkt.clouddn.com/" + fileName);
+                    result[0] = BihuPostTools.answer(BihuFragment.nowUser, Integer.parseInt(bihuQuestion.getId()), answer, answerImagesUrl);
 
                 }
-            }else {
-                result[0] = BihuPostTools.answer(BihuFragment.nowUser,Integer.parseInt(bihuQuestion.getId()),answer,answerImagesUrl);
+            } else {
+                result[0] = BihuPostTools.answer(BihuFragment.nowUser, Integer.parseInt(bihuQuestion.getId()), answer, answerImagesUrl);
             }
-        }catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         } catch (TimeoutException e) {
             e.printStackTrace();
@@ -746,16 +772,16 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
             disposeUnCurrentUser();
             e.printStackTrace();
         }
-        if (result[0]){
+        if (result[0]) {
             String images = "";
             for (int i = 0; i < answerImagesUrl.size(); i++) {
-                images = images+answerImagesUrl.get(i);
-                if (i!=answerImagesUrl.size()-1){
-                    images = images+",";
+                images = images + answerImagesUrl.get(i);
+                if (i != answerImagesUrl.size() - 1) {
+                    images = images + ",";
                 }
             }
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            BihuAnswer bihuAnswer = new BihuAnswer(0,answer,images,df.format(new Date()),"0","0","0","false","false",BihuFragment.nowUser);
+            BihuAnswer bihuAnswer = new BihuAnswer(0, answer, images, df.format(new Date()), "0", "0", "0", "false", "false", BihuFragment.nowUser);
             Message message = new Message();
             message.what = ADD_ANSWER;
             message.obj = bihuAnswer;
@@ -765,20 +791,21 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     }
 
     //打开相册的逻辑
-    public void openAlbum(){
+    public void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
-        startActivityForResult(intent,CHOOSE_PHOTO);
+        startActivityForResult(intent, CHOOSE_PHOTO);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if (grantResults.length > 0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openAlbum();
-                }else {
+                } else {
                     //Toast
+                    Toast.makeText(context, "相册打开失败,是不是没授权鸭", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
@@ -786,13 +813,13 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case CHOOSE_PHOTO:
-                if (resultCode==RESULT_OK){
-                    if (Build.VERSION.SDK_INT >=19){
+                if (resultCode == RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= 19) {
                         //4.4up
                         handleImageOnKitKat(data);
-                    }else{
+                    } else {
                         //4.4down
                         handlerImageBeforeKiKat(data);
                     }
@@ -801,42 +828,42 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void handleImageOnKitKat(Intent data){
+    private void handleImageOnKitKat(Intent data) {
         String imagePath = null;
         Uri uri = data.getData();
-        if (DocumentsContract.isDocumentUri(this,uri)){
+        if (DocumentsContract.isDocumentUri(this, uri)) {
             String docId = DocumentsContract.getDocumentId(uri);
-            if ("com.android.providers.media.documents".equals(uri.getAuthority())){
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
                 String id = docId.split(":")[1];//解析出数字格式的id
-                String selection = MediaStore.Images.Media._ID+"="+id;
-                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,selection);
-            }else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())){
-                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"),Long.valueOf(docId));
-                imagePath = getImagePath(contentUri,null);
+                String selection = MediaStore.Images.Media._ID + "=" + id;
+                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"), Long.valueOf(docId));
+                imagePath = getImagePath(contentUri, null);
             }
-        }else if ("content".equalsIgnoreCase(uri.getScheme())){
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
             //如果是content类型的Uri,则使用普通方式处理
-            imagePath = getImagePath(uri,null);
-        }else if ("file".equalsIgnoreCase(uri.getScheme())){
+            imagePath = getImagePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             imagePath = uri.getPath();
         }
         //根据图片路径添加图片displayImage
         addImage(imagePath);
     }
 
-    private void handlerImageBeforeKiKat(Intent data){
+    private void handlerImageBeforeKiKat(Intent data) {
         Uri uri = data.getData();
-        String imagePath = getImagePath(uri,null);
+        String imagePath = getImagePath(uri, null);
         //根据图片路径添加图片displayImage
         addImage(imagePath);
     }
 
-    private String getImagePath(Uri uri,String selection){
+    private String getImagePath(Uri uri, String selection) {
         String path = null;
         //通过Uri和selection来获取真实的图片路径
-        Cursor cursor = getContentResolver().query(uri,null,selection,null,null);
-        if(cursor !=null){
-            if (cursor.moveToFirst()){
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
             }
             cursor.close();
@@ -844,47 +871,47 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         return path;
     }
 
-    private void addImage(String imagePath){
-        if (imagePath != null){
+    private void addImage(String imagePath) {
+        if (imagePath != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             publishBitmap.add(bitmap);
             ImageView imageView = new ImageView(context);
             imageView.setImageBitmap(bitmap);
             imageView.setAdjustViewBounds(true);
             imageView.setMaxHeight(200);
-            imageView.setPadding(3,5,3,5);
+            imageView.setPadding(3, 5, 3, 5);
             publishImages.addView(imageView);
         }
     }
 
     //采纳
     @Override
-    public void onBestClickListener(final int position, final BihuAnswerAdapter.ViewHolder viewHolder){
-        if (BihuFragment.nowUser==null){
+    public void onBestClickListener(final int position, final BihuAnswerAdapter.ViewHolder viewHolder) {
+        if (BihuFragment.nowUser == null) {
             //首先进行nowUser是否为null判断避免报错
-            Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+            Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+        } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             //加载登录界面
-            Intent intent = new Intent(context,BihuLoginActivity.class);
+            Intent intent = new Intent(context, BihuLoginActivity.class);
             startActivity(intent);
-        }else {
+        } else {
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        if (BihuPostTools.accept(BihuFragment.nowUser,Integer.parseInt(bihuQuestion.getId()),bihuAnswerArrayList.get(position).getId())){
+                        if (BihuPostTools.accept(BihuFragment.nowUser, Integer.parseInt(bihuQuestion.getId()), bihuAnswerArrayList.get(position).getId())) {
                             Message successfulMessage = new Message();
-                            successfulMessage.what = SHOWTOASTMESSAGE;
+                            successfulMessage.what = SHOW_TOAST_MESSAGE;
                             successfulMessage.obj = "采纳成功";
                             handler.sendMessage(successfulMessage);
                             Message changeState = new Message();
-                            changeState.what = CHANGEBESTSTATE;
+                            changeState.what = CHANGE_BEST_STATE;
                             changeState.obj = viewHolder;
                             changeState.arg1 = position;
                             handler.sendMessage(changeState);
-                        }else {
+                        } else {
                             Message falseMessage = new Message();
-                            falseMessage.what = SHOWTOASTMESSAGE;
+                            falseMessage.what = SHOW_TOAST_MESSAGE;
                             falseMessage.obj = "采纳失败";
                             handler.sendMessage(falseMessage);
                         }
@@ -903,14 +930,15 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
             });
         }
     }
-    private void disposeUnCurrentUser(){
+
+    private void disposeUnCurrentUser() {
         Message message = new Message();
-        message.what = SHOWTOASTMESSAGE;
+        message.what = SHOW_TOAST_MESSAGE;
         message.obj = "身份验证过期,请重新登录";
         handler.sendMessage(message);
         try {
             BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
-            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
             MainActivity.mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -924,8 +952,17 @@ public class BihuQuestionDetailActivity extends AppCompatActivity implements Bih
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-        Intent intent = new Intent(context,BihuLoginActivity.class);
+        Intent intent = new Intent(context, BihuLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public void onTextViewLongClickListener(int position, BihuAnswerAdapter.ViewHolder viewHolder) {
+        ClipboardManager mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData mClipData;
+        mClipData = ClipData.newPlainText("content", viewHolder.content.getText().toString());
+        mClipboardManager.setPrimaryClip(mClipData);
+        Toast.makeText(context, "已复制回答内容", Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.obj;
 
 public class User {
     private String id;

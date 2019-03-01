@@ -30,9 +30,9 @@ import android.widget.Toast;
 
 import com.redrockwork.overrdie.bihu.pensonalcenter.PersonalCenterFragment;
 import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
-import com.redrockwork.overrdie.bihu.bihu.BihuLoginActivity;
+import com.redrockwork.overrdie.bihu.bihu.user.BihuLoginActivity;
 import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
-import com.redrockwork.overrdie.bihu.bihu.BihuQuestionPublishActivity;
+import com.redrockwork.overrdie.bihu.bihu.user.BihuQuestionPublishActivity;
 import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 import com.redrockwork.overrdie.bihu.gank.GankFragment;
 import com.redrockwork.overrdie.bihu.xiandu.XianduFragment;
@@ -45,10 +45,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
     public static ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
     public static TabLayout mTabLayout;
-    public static ImageView header,naviagtionHeader;
+    public static ImageView header, naviagtionHeader;
     private TextView userName;
     public static TextView title;
     private static Context context;
@@ -56,24 +56,25 @@ public class MainActivity extends AppCompatActivity{
     public static Bitmap avator;
     public static SharedPreferences sharedPreferences;
     public static SharedPreferences.Editor editor;
-    public static  ImageView publish;
+    public static ImageView publish;
     @SuppressLint("HandlerLeak")
-    public static Handler handler = new Handler(){
+    public static Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case 1:
-                    Toast.makeText(context,(String)msg.obj,Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, (String) msg.obj, Toast.LENGTH_LONG).show();
                     break;
             }
         }
     };
+
     @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sharedPreferences = getSharedPreferences("userdata",Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("userdata", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         publish = findViewById(R.id.iv_message);
         context = this;
@@ -102,37 +103,37 @@ public class MainActivity extends AppCompatActivity{
             public void run() {
                 try {
                     //判断登录的账号
-                    if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                    if (sharedPreferences.getString("lastUserName", "temp").equals("temp")) {
                         BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(context,"当前使用游客账号登录",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "当前使用游客账号登录", Toast.LENGTH_SHORT).show();
                             }
                         });
-                    }else {
-                        String [] value = {sharedPreferences.getString("lastUserName","temp"),sharedPreferences.getString("lastUserPassword","huanglong2019")};
+                    } else {
+                        String[] value = {sharedPreferences.getString("lastUserName", "temp"), sharedPreferences.getString("lastUserPassword", "huanglong2019")};
                         BihuFragment.nowUser = BihuPostTools.login(value);
-                        if (BihuFragment.nowUser == null){
+                        if (BihuFragment.nowUser == null) {
                             mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(context," 身份验证过期,请重新登录!当前使用游客账号登录",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, " 身份验证过期,请重新登录!当前使用游客账号登录", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
                         }
                     }
-                    if (BihuFragment.nowUser==null){
+                    if (BihuFragment.nowUser == null) {
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 header.setImageResource(R.drawable.without_network);
                             }
                         });
-                    }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                         //若是默认账号则设置默认头像
-                        Bitmap bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+                        Bitmap bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
                         avator = MyImageTools.cutToCircle(bitmap);
                         mainHandler.post(new Runnable() {
                             @Override
@@ -140,43 +141,43 @@ public class MainActivity extends AppCompatActivity{
                                 header.setImageBitmap(avator);
                             }
                         });
-                    }else {
-                        Log.v("加载图像","开始加载用户头像"+BihuFragment.nowUser.getUsername());
+                    } else {
+                        Log.v("加载图像", "开始加载用户头像" + BihuFragment.nowUser.getUsername());
                         Bitmap bitmap = MyImageTools.getBitmap(BihuFragment.nowUser.getAvatar());
-                        if (bitmap!=null){
+                        if (bitmap != null) {
                             avator = MyImageTools.cutToCircle(bitmap);
-                        }else {
-                            bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+                        } else {
+                            bitmap = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
                             avator = MyImageTools.cutToCircle(bitmap);
                         }
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (avator!=null)
-                                header.setImageBitmap(avator);
-                                Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                                if (avator != null)
+                                    header.setImageBitmap(avator);
+                                Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                                 header.startAnimation(animation);
-                                Toast.makeText(context,BihuFragment.nowUser.getUsername()+" 欢迎进入bi乎",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, BihuFragment.nowUser.getUsername() + " 欢迎进入bi乎", Toast.LENGTH_SHORT).show();
 
                             }
                         });
                     }
-                }catch (UnknownHostException e){
+                } catch (UnknownHostException e) {
                     e.printStackTrace();
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             header.setImageResource(R.drawable.without_network);
-                            avator = MyImageTools.changeToBitmap(R.drawable.without_network,context);
+                            avator = MyImageTools.changeToBitmap(R.drawable.without_network, context);
                             mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(context,"当前无网络链接,将使用缓存数据,部分服务将不可用",Toast.LENGTH_LONG).show();
+                                    Toast.makeText(context, "当前无网络链接,将使用缓存数据,部分服务将不可用", Toast.LENGTH_LONG).show();
                                 }
                             });
                         }
                     });
-                }catch (JSONException e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (TimeoutException e) {
                     e.printStackTrace();
@@ -193,37 +194,37 @@ public class MainActivity extends AppCompatActivity{
                 //在这里初始化所有的NavigationView的资源
                 naviagtionHeader = findViewById(R.id.iv_header);
                 userName = findViewById(R.id.tv_header);
-                if (BihuFragment.nowUser==null){
-                    if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                if (BihuFragment.nowUser == null) {
+                    if (sharedPreferences.getString("lastUserName", "temp").equals("temp")) {
                         userName.setText("未登录(离线)");
-                    }else {
-                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"\n(离线)");
+                    } else {
+                        userName.setText(sharedPreferences.getString("lastUserName", "temp") + "\n(离线)");
                     }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(context,BihuLoginActivity.class);
+                            Intent intent = new Intent(context, BihuLoginActivity.class);
                             startActivity(intent);
                         }
                     });
-                }else if(BihuFragment.nowUser.getUsername().equals("temp")){
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     userName.setText("游客\n请登录");
                     naviagtionHeader.setImageResource(R.drawable.defultuser);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(context,BihuLoginActivity.class);
+                            Intent intent = new Intent(context, BihuLoginActivity.class);
                             startActivity(intent);
                         }
                     });
-                }else {
+                } else {
                     userName.setText(BihuFragment.nowUser.getUsername());
                     naviagtionHeader.setImageBitmap(avator);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new PersonalCenterFragment()).commit();
+                            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new PersonalCenterFragment()).commit();
                             mDrawerLayout.closeDrawers();
                         }
                     });
@@ -238,37 +239,37 @@ public class MainActivity extends AppCompatActivity{
                 //在这里初始化所有的NavigationView的资源
                 naviagtionHeader = findViewById(R.id.iv_header);
                 userName = findViewById(R.id.tv_header);
-                if (BihuFragment.nowUser==null){
-                    if (sharedPreferences.getString("lastUserName","temp").equals("temp")){
+                if (BihuFragment.nowUser == null) {
+                    if (sharedPreferences.getString("lastUserName", "temp").equals("temp")) {
                         userName.setText("未登录(离线)");
-                    }else {
-                        userName.setText(sharedPreferences.getString("lastUserName","temp")+"\n(离线)");
+                    } else {
+                        userName.setText(sharedPreferences.getString("lastUserName", "temp") + "\n(离线)");
                     }
                     naviagtionHeader.setImageResource(R.drawable.without_network);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(context,BihuLoginActivity.class);
+                            Intent intent = new Intent(context, BihuLoginActivity.class);
                             startActivity(intent);
                         }
                     });
-                }else if(BihuFragment.nowUser.getUsername().equals("temp")){
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     userName.setText("游客\n请登录");
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(context,BihuLoginActivity.class);
+                            Intent intent = new Intent(context, BihuLoginActivity.class);
                             startActivity(intent);
                         }
                     });
                     naviagtionHeader.setImageResource(R.drawable.defultuser);
-                }else {
+                } else {
                     userName.setText(BihuFragment.nowUser.getUsername());
                     naviagtionHeader.setImageBitmap(avator);
                     naviagtionHeader.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new PersonalCenterFragment()).commit();
+                            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new PersonalCenterFragment()).commit();
                             mDrawerLayout.closeDrawers();
                         }
                     });
@@ -278,102 +279,102 @@ public class MainActivity extends AppCompatActivity{
         mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                switch (menuItem.getItemId()){
-                        //gank新闻
+                switch (menuItem.getItemId()) {
+                    //gank新闻
                     case R.id.it_news:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new GankFragment()).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new GankFragment()).commit();
                         publish.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (BihuFragment.nowUser==null){
+                                if (BihuFragment.nowUser == null) {
                                     //首先进行nowUser是否为null判断避免报错
-                                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                                     //加载登录界面
-                                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                                    Intent intent = new Intent(context, BihuLoginActivity.class);
                                     startActivity(intent);
-                                }else {
-                                    Intent intent = new Intent(context,BihuQuestionPublishActivity.class);
+                                } else {
+                                    Intent intent = new Intent(context, BihuQuestionPublishActivity.class);
                                     startActivity(intent);
                                 }
                             }
                         });
                         break;
-                        //闲读
+                    //闲读
                     case R.id.it_xiandu:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new XianduFragment()).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new XianduFragment()).commit();
                         publish.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (BihuFragment.nowUser==null){
+                                if (BihuFragment.nowUser == null) {
                                     //首先进行nowUser是否为null判断避免报错
-                                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                                     //加载登录界面
-                                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                                    Intent intent = new Intent(context, BihuLoginActivity.class);
                                     startActivity(intent);
-                                }else {
-                                    Intent intent = new Intent(context,BihuQuestionPublishActivity.class);
+                                } else {
+                                    Intent intent = new Intent(context, BihuQuestionPublishActivity.class);
                                     startActivity(intent);
                                 }
                             }
                         });
                         break;
-                        //逼乎
+                    //逼乎
                     case R.id.it_answer:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new BihuFragment()).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new BihuFragment()).commit();
                         publish.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (BihuFragment.nowUser==null){
+                                if (BihuFragment.nowUser == null) {
                                     //首先进行nowUser是否为null判断避免报错
-                                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                                     //加载登录界面
-                                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                                    Intent intent = new Intent(context, BihuLoginActivity.class);
                                     startActivity(intent);
-                                }else {
-                                    Intent intent = new Intent(context,BihuQuestionPublishActivity.class);
+                                } else {
+                                    Intent intent = new Intent(context, BihuQuestionPublishActivity.class);
                                     startActivity(intent);
                                 }
                             }
                         });
                         break;
-                        //个人中心
+                    //个人中心
                     case R.id.it_about_me:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new PersonalCenterFragment()).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new PersonalCenterFragment()).commit();
                         publish.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (BihuFragment.nowUser==null){
+                                if (BihuFragment.nowUser == null) {
                                     //首先进行nowUser是否为null判断避免报错
-                                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                                     //加载登录界面
-                                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                                    Intent intent = new Intent(context, BihuLoginActivity.class);
                                     startActivity(intent);
-                                }else {
-                                    Intent intent = new Intent(context,BihuQuestionPublishActivity.class);
+                                } else {
+                                    Intent intent = new Intent(context, BihuQuestionPublishActivity.class);
                                     startActivity(intent);
                                 }
                             }
                         });
                         break;
-                        //关于该app
+                    //关于该app
                     case R.id.it_about:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main,new AboutFragment()).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_main, new AboutFragment()).commit();
                         publish.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (BihuFragment.nowUser==null){
+                                if (BihuFragment.nowUser == null) {
                                     //首先进行nowUser是否为null判断避免报错
-                                    Toast.makeText(context,"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                                    Toast.makeText(context, "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                                     //加载登录界面
-                                    Intent intent = new Intent(context,BihuLoginActivity.class);
+                                    Intent intent = new Intent(context, BihuLoginActivity.class);
                                     startActivity(intent);
-                                }else {
-                                    Intent intent = new Intent(context,BihuQuestionPublishActivity.class);
+                                } else {
+                                    Intent intent = new Intent(context, BihuQuestionPublishActivity.class);
                                     startActivity(intent);
                                 }
                             }
@@ -390,20 +391,20 @@ public class MainActivity extends AppCompatActivity{
             mNavigationView.getMenu().performIdentifierAction(R.id.it_news, 0);
         }
         //运行时权限(假233333
-        if (ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions((Activity) context,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if (grantResults.length > 0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                    Toast.makeText(this,"授权成功,可以进行图片缓存和发布图片",Toast.LENGTH_SHORT).show();
-                }else {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "授权成功,可以进行图片缓存和发布图片", Toast.LENGTH_SHORT).show();
+                } else {
                     //Toast
-                    Toast.makeText(this,"授权失败,无法进行图片缓存和发布图片",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "授权失败,无法进行图片缓存和发布图片", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

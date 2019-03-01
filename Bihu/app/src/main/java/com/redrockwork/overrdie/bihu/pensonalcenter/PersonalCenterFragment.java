@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,26 +17,26 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
 import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
-import com.redrockwork.overrdie.bihu.bihu.BihuLoginActivity;
+import com.redrockwork.overrdie.bihu.bihu.user.BihuLoginActivity;
 import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
 import com.redrockwork.overrdie.bihu.bihu.UnCurrentUserException;
 import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
+
 import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 public class PersonalCenterFragment extends Fragment {
     private View personalCenter;
     private ImageView userAvatar;
-    private TextView userName,changePassword,quit;
-//    private SwipeRefreshLayout swipeRefreshLayout;
+    private TextView userName, changePassword, quit;
+    //    private SwipeRefreshLayout swipeRefreshLayout;
     private Handler handler = new Handler();
     public static boolean isChangeAvatar = false;
     public static boolean isLogin = false;
@@ -46,7 +45,7 @@ public class PersonalCenterFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        personalCenter = inflater.inflate(R.layout.personal_center_fragment,container,false);
+        personalCenter = inflater.inflate(R.layout.personal_center_fragment, container, false);
         MainActivity.mTabLayout.removeAllTabs();
         MainActivity.title.setText("个人中心");
         //加入一个个人中心的tab
@@ -57,48 +56,48 @@ public class PersonalCenterFragment extends Fragment {
         userAvatar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+                if (BihuFragment.nowUser == null) {
+                    Intent intent = new Intent(getContext(), BihuLoginActivity.class);
                     startActivity(intent);
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+                    Intent intent = new Intent(getContext(), BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
-                    Intent intent = new Intent(getContext(),ChangeAvatarActivity.class);
+                } else {
+                    Intent intent = new Intent(getContext(), ChangeAvatarActivity.class);
                     startActivity(intent);
                 }
             }
         });
         userName = personalCenter.findViewById(R.id.tv_userName);
-        if (BihuFragment.nowUser==null){
-            if (MainActivity.sharedPreferences.getString("lastUserName","temp").equals("temp")){
+        if (BihuFragment.nowUser == null) {
+            if (MainActivity.sharedPreferences.getString("lastUserName", "temp").equals("temp")) {
                 userName.setText("未登录(离线)");
-            }else {
-                userName.setText(MainActivity.sharedPreferences.getString("lastUserName","temp")+"(离线)");
+            } else {
+                userName.setText(MainActivity.sharedPreferences.getString("lastUserName", "temp") + "(离线)");
             }
-        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+        } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             userName.setText("游客,点击登录");
-        }else {
+        } else {
             userName.setText(BihuFragment.nowUser.getUsername());
         }
         changePassword = personalCenter.findViewById(R.id.tv_change_password);
-        Drawable passwordDrawable = ContextCompat.getDrawable(getContext(),R.drawable.password);
-        passwordDrawable.setBounds(0,0,50,50);
-        changePassword.setCompoundDrawables(passwordDrawable,null,null,null);
+        Drawable passwordDrawable = ContextCompat.getDrawable(getContext(), R.drawable.password);
+        passwordDrawable.setBounds(0, 0, 50, 50);
+        changePassword.setCompoundDrawables(passwordDrawable, null, null, null);
         changePassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
+                if (BihuFragment.nowUser == null) {
                     //首先进行nowUser是否为null判断避免报错
-                    Toast.makeText(getContext(),"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    Toast.makeText(getContext(), "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+                    Intent intent = new Intent(getContext(), BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
+                } else {
                     //更改密码activity
-                    Intent intent = new Intent(getContext(),ChangePasswordActivity.class);
+                    Intent intent = new Intent(getContext(), ChangePasswordActivity.class);
                     startActivity(intent);
                 }
 
@@ -106,28 +105,28 @@ public class PersonalCenterFragment extends Fragment {
         });
         quit = personalCenter.findViewById(R.id.tv_quit);
         Drawable quitDrawable = getResources().getDrawable(R.drawable.quit);
-        quitDrawable.setBounds(0,0,50,50);
-        quit.setCompoundDrawables(quitDrawable,null,null,null);
+        quitDrawable.setBounds(0, 0, 50, 50);
+        quit.setCompoundDrawables(quitDrawable, null, null, null);
         quit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (BihuFragment.nowUser==null){
+                if (BihuFragment.nowUser == null) {
                     //首先进行nowUser是否为null判断避免报错
-                    Toast.makeText(getContext(),"当前无网络连接,无法进行该操作",Toast.LENGTH_SHORT).show();
-                }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+                    Toast.makeText(getContext(), "当前无网络连接,无法进行该操作", Toast.LENGTH_SHORT).show();
+                } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
                     //加载登录界面
-                    Toast.makeText(getContext(),"你还没登录奥",Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+                    Toast.makeText(getContext(), "你还没登录奥", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getContext(), BihuLoginActivity.class);
                     startActivity(intent);
-                }else {
+                } else {
                     //退出登录
                     MainActivity.fixedThreadPool.execute(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
-                                MainActivity.editor.putString("lastUserName","temp");
-                                MainActivity.editor.putString("lastUserPassword","huanglong2019");
+                                MainActivity.editor.putString("lastUserName", "temp");
+                                MainActivity.editor.putString("lastUserPassword", "huanglong2019");
                                 MainActivity.editor.commit();
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -139,7 +138,7 @@ public class PersonalCenterFragment extends Fragment {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Animation animation = AnimationUtils.loadAnimation(getContext(),R.anim.fadein);
+                                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.fadein);
                                     userAvatar.setImageResource(R.drawable.defultuser);
                                     userAvatar.startAnimation(animation);
                                     MainActivity.header.setImageResource(R.drawable.defultuser);
@@ -159,25 +158,24 @@ public class PersonalCenterFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (isChangeAvatar){
+        if (isChangeAvatar) {
 //            swipeRefreshLayout.setRefreshing(true);
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
                     //本地先备份,加载的时候就不需要重新网络请求了
-                    String fileName = df.format(new Date());
-                    File file = MyImageTools.saveBitmapFile(tempBitmap,fileName);
-                    MyImageTools.postFileToQiniu(file,fileName);
-                    String url = "http://pnffhnnkk.bkt.clouddn.com/"+fileName;
+                    String fileName = System.currentTimeMillis() + "";
+                    File file = MyImageTools.saveBitmapFile(tempBitmap, fileName);
+                    MyImageTools.postFileToQiniu(file, fileName);
+                    String url = "http://pnffhnnkk.bkt.clouddn.com/" + fileName;
                     try {
-                        BihuPostTools.modifyAvatar(BihuFragment.nowUser,url);
+                        BihuPostTools.modifyAvatar(BihuFragment.nowUser, url);
 //                        swipeRefreshLayout.setRefreshing(false);
                         isChangeAvatar = false;
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getContext(),"更改成功!",Toast.LENGTH_SHORT);
+                                Toast.makeText(getContext(), "更改成功!", Toast.LENGTH_SHORT);
                                 Bitmap bitmap = MyImageTools.cutToCircle(tempBitmap);
                                 MainActivity.avator = bitmap;
                                 MainActivity.naviagtionHeader.setImageBitmap(bitmap);
@@ -196,7 +194,7 @@ public class PersonalCenterFragment extends Fragment {
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getContext(),"身份验证过期,请重新登录",Toast.LENGTH_SHORT);
+                                Toast.makeText(getContext(), "身份验证过期,请重新登录", Toast.LENGTH_SHORT);
                                 disposeUnCurrentUser();
                             }
                         });
@@ -204,29 +202,29 @@ public class PersonalCenterFragment extends Fragment {
                 }
             });
         }
-        if (isLogin){
+        if (isLogin) {
             userAvatar.setImageBitmap(MainActivity.avator);
             userName.setText(BihuFragment.nowUser.getUsername());
             isLogin = false;
         }
-        if (BihuFragment.nowUser==null){
+        if (BihuFragment.nowUser == null) {
             userAvatar.setImageResource(R.drawable.without_network);
-            if (MainActivity.sharedPreferences.getString("lastUserName","temp").equals("temp")){
+            if (MainActivity.sharedPreferences.getString("lastUserName", "temp").equals("temp")) {
                 userName.setText("未登录(离线)");
-            }else {
-                userName.setText(MainActivity.sharedPreferences.getString("lastUserName","temp")+"(离线)");
+            } else {
+                userName.setText(MainActivity.sharedPreferences.getString("lastUserName", "temp") + "(离线)");
             }
-        }else if (BihuFragment.nowUser.getUsername().equals("temp")){
+        } else if (BihuFragment.nowUser.getUsername().equals("temp")) {
             userAvatar.setImageResource(R.drawable.defultuser);
             userName.setText("游客,点击头像登录");
         }
 
     }
 
-    private void disposeUnCurrentUser(){
+    private void disposeUnCurrentUser() {
         try {
             BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
-            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,getContext());
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser, getContext());
             MainActivity.header.setImageResource(R.drawable.defultuser);
         } catch (JSONException e1) {
             e1.printStackTrace();
@@ -235,7 +233,7 @@ public class PersonalCenterFragment extends Fragment {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-        Intent intent = new Intent(getContext(),BihuLoginActivity.class);
+        Intent intent = new Intent(getContext(), BihuLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }

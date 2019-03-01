@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.obj;
 
 import android.widget.ImageView;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class BihuAnswer {
     private int id;
-    private String content,imagesUrl,date,best,exciting,naive,isExciting,isNaive;
+    private String content, imagesUrl, date, best, exciting, naive, isExciting, isNaive;
     private User author;
     private ArrayList<ImageView> imageViews = new ArrayList<>();
 

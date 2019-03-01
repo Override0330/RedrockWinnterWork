@@ -19,32 +19,33 @@ public class HttpsRequestHelper {
     private int method = 0;
     public static final int GET = 0;
     public static final int POST = 1;
-    private String [] key;
-    private String [] value;
+    private String[] key;
+    private String[] value;
     private int responseCode;
 
     public HttpsRequestHelper(String url) {
         this.url = url;
     }
 
-    public void setMethod(int method){
+    public void setMethod(int method) {
         this.method = method;
     }
 
-    public void setPostArguments(String [] key,String [] value){
+    public void setPostArguments(String[] key, String[] value) {
         this.key = key;
         this.value = value;
     }
 
     public Recall start() throws IOException, TimeoutException, JSONException {
 
-        if (method==0){
-            return new Recall(get(url),responseCode);
-        }else {
-            return new Recall(post(url,key,value),responseCode);
+        if (method == 0) {
+            return new Recall(get(url), responseCode);
+        } else {
+            return new Recall(post(url, key, value), responseCode);
         }
 
     }
+
     public String get(String url) throws IOException, TimeoutException, JSONException {
         HttpURLConnection connection = null;
         try {
@@ -77,7 +78,7 @@ public class HttpsRequestHelper {
         }
     }
 
-    private String post(String url,String [] key,String[] value) throws IOException, TimeoutException, JSONException {
+    private String post(String url, String[] key, String[] value) throws IOException, TimeoutException, JSONException {
         HttpURLConnection connection = null;
         try {
             URL mURL = new URL(url);
@@ -87,17 +88,17 @@ public class HttpsRequestHelper {
             connection.setRequestMethod("POST");
             connection.setReadTimeout(5000);
             connection.setConnectTimeout(10000);
-            for (int i = 0; i < key.length;i++) {
-                data = data+key[i]+"="+value[i];
-                if (i!=key.length-1){
-                    data = data+"&";
+            for (int i = 0; i < key.length; i++) {
+                data = data + key[i] + "=" + value[i];
+                if (i != key.length - 1) {
+                    data = data + "&";
                 }
             }
             //这里计算整个postdata的byte长度,加入太多图片会导致postdata太长而报错!
             byte[] sendData = data.getBytes();
             int length = sendData.length;
-            connection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
-            connection.setRequestProperty("Content-Length", length+"");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            connection.setRequestProperty("Content-Length", length + "");
             connection.setDoOutput(true);
             OutputStream out = connection.getOutputStream();
             out.write(data.getBytes());

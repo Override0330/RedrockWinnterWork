@@ -4,7 +4,7 @@ xmlns:app="http://schemas.android.com/apk/res-auto"
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context=".bihu.BihuLoginActivity"
+tools:context=".bihu.user.BihuLoginActivity"
     android:orientation="vertical">
     <LinearLayout
         android:id="@+id/ll_login_detail_top"

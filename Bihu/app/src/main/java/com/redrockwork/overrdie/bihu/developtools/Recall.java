@@ -1,12 +1,11 @@
 package com.redrockwork.overrdie.bihu.developtools;
 
-import java.io.UnsupportedEncodingException;
 
 public class Recall {
     private String json;
     private int responseCode;
 
-    public Recall(String json,int responseCode) throws UnsupportedEncodingException {
+    public Recall(String json, int responseCode){
         this.json = json;
         this.responseCode = responseCode;
     }
@@ -15,12 +14,9 @@ public class Recall {
         return json;
     }
 
-    public int getResponseCode() {
-        return responseCode;
-    }
 
     @Override
     public String toString() {
-        return "ResponseCode:"+responseCode+"\n"+"JSON:"+json;
+        return "ResponseCode:" + responseCode + "\n" + "JSON:" + json;
     }
 }

@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.user;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -30,36 +30,41 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.bihu.BihuFragment;
+import com.redrockwork.overrdie.bihu.bihu.BihuPostTools;
+import com.redrockwork.overrdie.bihu.bihu.UnCurrentUserException;
+import com.redrockwork.overrdie.bihu.bihu.square.BihuSquareFragment;
 import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
+
 import org.json.JSONException;
+
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 public class BihuQuestionPublishActivity extends AppCompatActivity {
-    private ImageView backButton,add;
-    private TextView title,content;
+    private ImageView backButton, add;
+    private TextView title, content;
     private Button publish;
     private LinearLayout imagesView;
     private Context context = this;
     private ArrayList<String> images = new ArrayList<>();
     private ArrayList<Bitmap> bitmapsArrayList = new ArrayList<>();
-    private final static int SHOWTOASTMESSAGE = 0;
+    private final static int SHOW_TOAST_MESSAGE = 0;
     private final static int CHOOSE_PHOTO = 1;
 
 
     @SuppressLint("HandlerLeak")
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
-                case SHOWTOASTMESSAGE:
-                    Toast.makeText(context, (String) msg.obj,Toast.LENGTH_SHORT).show();
+            switch (msg.what) {
+                case SHOW_TOAST_MESSAGE:
+                    Toast.makeText(context, (String) msg.obj, Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -79,7 +84,7 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                Toast.makeText(context,"点击了发布按钮",Toast.LENGTH_SHORT).show();
-                if (BihuFragment.nowUser!=null){
+                if (BihuFragment.nowUser != null) {
                     //用户属性正常
                     final String titleString = title.getText().toString();
                     final String contentString = content.getText().toString();
@@ -91,15 +96,14 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 Bitmap bitmap = bitmapsArrayList.get(finalI);
-                                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-                                File file = MyImageTools.saveBitmapFile(bitmap,df.format(new Date())+ finalI1);
-                                MyImageTools.postFileToQiniu(file,df.format(new Date())+ finalI1);
-                                images.add("http://pnffhnnkk.bkt.clouddn.com/"+df.format(new Date())+ finalI1);
+                                File file = MyImageTools.saveBitmapFile(bitmap, System.currentTimeMillis() + finalI1 + "");
+                                MyImageTools.postFileToQiniu(file, System.currentTimeMillis() + finalI1 + "");
+                                images.add("http://pnffhnnkk.bkt.clouddn.com/" + System.currentTimeMillis() + finalI1 + "");
                             }
                         });
                     }
                     //等待图片上传完毕
-                    while(images.size()!=bitmapsArrayList.size()){
+                    while (images.size() != bitmapsArrayList.size()) {
                         try {
                             Thread.sleep(10);
                         } catch (InterruptedException e) {
@@ -107,25 +111,25 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                         }
                     }
                     //发布问题处理
-                    if (!titleString.equals("")&&!contentString.equals("")){
+                    if (!titleString.equals("") && !contentString.equals("")) {
                         MainActivity.fixedThreadPool.execute(new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    if (publishQuestion(titleString,contentString)){
-                                        Log.i("发布","成功");
+                                    if (publishQuestion(titleString, contentString)) {
+                                        Log.i("发布", "成功");
                                         //成功Toast
                                         Message successfulMessage = new Message();
-                                        successfulMessage.what = SHOWTOASTMESSAGE;
+                                        successfulMessage.what = SHOW_TOAST_MESSAGE;
                                         successfulMessage.obj = "发布成功";
                                         handler.sendMessage(successfulMessage);
                                         BihuSquareFragment.isClickThePublishButton = true;
                                         finish();
-                                    }else {
-                                        Log.i("发布","失败");
+                                    } else {
+                                        Log.i("发布", "失败");
                                         //失败Toast
                                         Message falseMessge = new Message();
-                                        falseMessge.what = SHOWTOASTMESSAGE;
+                                        falseMessge.what = SHOW_TOAST_MESSAGE;
                                         falseMessge.obj = "发布失败,网络链接可能已经断开,请重试";
                                         handler.sendMessage(falseMessge);
                                     }
@@ -142,14 +146,14 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                    }else {
+                    } else {
                         //内容为空提示
                         Message emptyMessage = new Message();
-                        emptyMessage.what = SHOWTOASTMESSAGE;
+                        emptyMessage.what = SHOW_TOAST_MESSAGE;
                         emptyMessage.obj = "标题和内容不能为空";
                         handler.sendMessage(emptyMessage);
                     }
-                }else {
+                } else {
                     //进入离线模式
                     Message message = new Message();
                     message.what = 1;
@@ -177,37 +181,42 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"点击了添加图片的按钮",Toast.LENGTH_SHORT).show();
-                if (ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
-                    ActivityCompat.requestPermissions((Activity) context,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-                }else {
-                    openAlbum();
+                if (bitmapsArrayList.size() < 5) {
+//                    Toast.makeText(context,"点击了添加图片的按钮",Toast.LENGTH_SHORT).show();
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    } else {
+                        openAlbum();
+                    }
+                } else {
+                    Toast.makeText(context, "不能再加了奥,最多只能添加5张图片", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
-    private boolean publishQuestion(String title,String content) throws TimeoutException, JSONException, IOException, UnCurrentUserException {
-        if (BihuPostTools.publishQuestion(BihuFragment.nowUser,title,content,images)){
+    private boolean publishQuestion(String title, String content) throws TimeoutException, JSONException, IOException, UnCurrentUserException {
+        if (BihuPostTools.publishQuestion(BihuFragment.nowUser, title, content, images)) {
             return true;
         }
         return false;
     }
 
-    public void openAlbum(){
+    public void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
-        startActivityForResult(intent,CHOOSE_PHOTO);
+        startActivityForResult(intent, CHOOSE_PHOTO);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if (grantResults.length > 0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openAlbum();
-                }else {
-                    //Toast
+                } else {
+                    //Toast相册打开失败
+                    Toast.makeText(context, "相册打开失败,是不是没授权鸭", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
@@ -215,13 +224,13 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case CHOOSE_PHOTO:
-                if (resultCode==RESULT_OK){
-                    if (Build.VERSION.SDK_INT >=19){
+                if (resultCode == RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= 19) {
                         //4.4up
                         handleImageOnKitKat(data);
-                    }else{
+                    } else {
                         //4.4down
                         handlerImageBeforeKiKat(data);
                     }
@@ -230,42 +239,42 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void handleImageOnKitKat(Intent data){
+    private void handleImageOnKitKat(Intent data) {
         String imagePath = null;
         Uri uri = data.getData();
-        if (DocumentsContract.isDocumentUri(this,uri)){
+        if (DocumentsContract.isDocumentUri(this, uri)) {
             String docId = DocumentsContract.getDocumentId(uri);
-            if ("com.android.providers.media.documents".equals(uri.getAuthority())){
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
                 String id = docId.split(":")[1];//解析出数字格式的id
-                String selection = MediaStore.Images.Media._ID+"="+id;
-                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,selection);
-            }else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())){
-                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"),Long.valueOf(docId));
-                imagePath = getImagePath(contentUri,null);
+                String selection = MediaStore.Images.Media._ID + "=" + id;
+                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://download/public_downloads"), Long.valueOf(docId));
+                imagePath = getImagePath(contentUri, null);
             }
-        }else if ("content".equalsIgnoreCase(uri.getScheme())){
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
             //如果是content类型的Uri,则使用普通方式处理
-            imagePath = getImagePath(uri,null);
-        }else if ("file".equalsIgnoreCase(uri.getScheme())){
+            imagePath = getImagePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             imagePath = uri.getPath();
         }
         //根据图片路径添加图片displayImage
         addImage(imagePath);
     }
 
-    private void handlerImageBeforeKiKat(Intent data){
+    private void handlerImageBeforeKiKat(Intent data) {
         Uri uri = data.getData();
-        String imagePath = getImagePath(uri,null);
+        String imagePath = getImagePath(uri, null);
         //根据图片路径添加图片displayImage
         addImage(imagePath);
     }
 
-    private String getImagePath(Uri uri,String selection){
+    private String getImagePath(Uri uri, String selection) {
         String path = null;
         //通过Uri和selection来获取真实的图片路径
-        Cursor cursor = getContentResolver().query(uri,null,selection,null,null);
-        if(cursor !=null){
-            if (cursor.moveToFirst()){
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
                 path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
             }
             cursor.close();
@@ -273,26 +282,26 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
         return path;
     }
 
-    private void addImage(String imagePath){
-        if (imagePath != null){
+    private void addImage(String imagePath) {
+        if (imagePath != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             bitmapsArrayList.add(bitmap);
             ImageView imageView = new ImageView(context);
             imageView.setImageBitmap(bitmap);
             imageView.setAdjustViewBounds(true);
-            imageView.setPadding(3,0,3,0);
+            imageView.setPadding(3, 0, 3, 0);
             imagesView.addView(imageView);
         }
     }
 
-    private void disposeUnCurrentUser(){
+    private void disposeUnCurrentUser() {
         Message message = new Message();
-        message.what = SHOWTOASTMESSAGE;
+        message.what = SHOW_TOAST_MESSAGE;
         message.obj = "身份验证过期,请重新登录";
         handler.sendMessage(message);
         try {
             BihuFragment.nowUser = BihuPostTools.login(BihuFragment.defaultUserInformation);
-            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+            MainActivity.avator = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
             MainActivity.mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -306,7 +315,7 @@ public class BihuQuestionPublishActivity extends AppCompatActivity {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-        Intent intent = new Intent(context,BihuLoginActivity.class);
+        Intent intent = new Intent(context, BihuLoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }

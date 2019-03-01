@@ -21,9 +21,7 @@ public class GankFragment extends Fragment {
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
     private ArrayList<Fragment> newsFragments = new ArrayList();
-    public static final int SET_SPINNER = 0;
-    public static final int INIT_NEWS = 1;
-    private String [] stringTitle = {"Android","iOS","前端","拓展资源","瞎推荐","App"};
+    private String[] stringTitle = {"Android", "iOS", "前端", "拓展资源", "瞎推荐", "App"};
     private ArrayList<String> titles = new ArrayList<>();
 
 
@@ -35,11 +33,11 @@ public class GankFragment extends Fragment {
         return gankView;
     }
 
-    private void initTabLayout(){
+    private void initTabLayout() {
         mTabLayout = MainActivity.mTabLayout;
         MainActivity.title.setText("");
         mViewPager = gankView.findViewById(R.id.gank_vp);
-        for (int i = 0; i < stringTitle.length ;i++) {
+        for (int i = 0; i < stringTitle.length; i++) {
             GankNewsFragment gankNewsFragment = GankNewsFragment.newInstant(stringTitle[i]);
             newsFragments.add(gankNewsFragment);
         }
@@ -48,9 +46,8 @@ public class GankFragment extends Fragment {
             titles.add(stringTitle[i]);
             mTabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
         }
-        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(),newsFragments,titles);
+        MyViewPagerAdapter myViewPagerAdapter = new MyViewPagerAdapter(getChildFragmentManager(), newsFragments, titles);
         mTabLayout.setupWithViewPager(mViewPager);
         mViewPager.setAdapter(myViewPagerAdapter);
     }
-
 }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".bihu.BihuQuestionPublishActivity"
+    tools:context=".bihu.user.BihuQuestionPublishActivity"
     android:orientation="vertical">
     <LinearLayout
         android:id="@+id/ll_question_publish_top"

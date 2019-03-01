@@ -16,6 +16,7 @@ import android.widget.Toast;
 public class BrowserPageActivity extends AppCompatActivity {
     private String url = "https://github.com/Override0330";
     private Context context = this;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,22 +38,22 @@ public class BrowserPageActivity extends AppCompatActivity {
         copy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ClipboardManager mClipboardManager = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+                ClipboardManager mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 ClipData mClipData;
-                mClipData = ClipData.newPlainText("url",url);
+                mClipData = ClipData.newPlainText("url", url);
                 mClipboardManager.setPrimaryClip(mClipData);
-                Toast.makeText(context,"已复制网站链接",Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "已复制网站链接", Toast.LENGTH_SHORT).show();
             }
         });
 
         final ProgressBar progressBar = findViewById(R.id.pb_browser);
         WebView webView = findViewById(R.id.wv_browser);
-        webView.setWebChromeClient(new WebChromeClient(){
+        webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-                if (newProgress==100){
+                if (newProgress == 100) {
                     progressBar.setVisibility(View.GONE);
-                }else{
+                } else {
                     progressBar.setVisibility(View.VISIBLE);
                     progressBar.setProgress(newProgress);
                 }

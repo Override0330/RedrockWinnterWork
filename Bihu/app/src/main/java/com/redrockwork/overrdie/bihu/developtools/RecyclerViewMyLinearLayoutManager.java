@@ -23,9 +23,9 @@ public class RecyclerViewMyLinearLayoutManager extends LinearLayoutManager {
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-        try{
-            super.onLayoutChildren(recycler,state);
-        }catch (IndexOutOfBoundsException e){
+        try {
+            super.onLayoutChildren(recycler, state);
+        } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
     }

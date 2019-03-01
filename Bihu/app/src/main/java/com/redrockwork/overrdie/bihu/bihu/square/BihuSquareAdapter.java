@@ -1,4 +1,4 @@
-package com.redrockwork.overrdie.bihu.bihu;
+package com.redrockwork.overrdie.bihu.bihu.square;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
@@ -20,19 +20,20 @@ import android.widget.TextView;
 
 import com.redrockwork.overrdie.bihu.MainActivity;
 import com.redrockwork.overrdie.bihu.R;
+import com.redrockwork.overrdie.bihu.bihu.obj.BihuQuestion;
 import com.redrockwork.overrdie.bihu.developtools.MyImageTools;
 
 import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
 
-public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.ViewHolder> implements View.OnClickListener{
+public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.ViewHolder> implements View.OnClickListener {
     private ArrayList<BihuQuestion> bihuQuestionArrayList;
     private Context context;
     private android.os.Handler mainHandler;
     private int lastPosition = -1;
 
-    public BihuSquareAdapter(ArrayList<BihuQuestion> bihuQuestionArrayList, Context context,android.os.Handler handler) {
+    public BihuSquareAdapter(ArrayList<BihuQuestion> bihuQuestionArrayList, Context context, android.os.Handler handler) {
         this.bihuQuestionArrayList = bihuQuestionArrayList;
         this.context = context;
         this.mainHandler = handler;
@@ -41,10 +42,10 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     /**
      * RecyclerViewAdapter部分
      */
-    class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title,content,time,exciting,naive,comment,author,createTime;
-        ImageView abstractImage;
-        ImageView imageView,favorite;
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView title, content, time, exciting, naive, comment, author, createTime;
+        public ImageView abstractImage;
+        public ImageView imageView, favorite;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -65,7 +66,7 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.bihu_question_item,viewGroup,false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.bihu_question_item, viewGroup, false);
         ViewHolder viewHolder = new ViewHolder(view);
         view.setOnClickListener(this);
         return viewHolder;
@@ -87,61 +88,61 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
         viewHolder.content.setText(bihuQuestion.getAbstractContent());
 
         //选择显示更新时间还是发布时间
-        if (bihuQuestion.getRecent().equals("null")){
+        if (bihuQuestion.getRecent().equals("null")) {
             viewHolder.time.setText("没有动态😣");
-        }else {
+        } else {
             viewHolder.time.setText(bihuQuestion.getRecent());
         }
 
         viewHolder.createTime.setText(bihuQuestion.getTime());
 
         //收藏状态显示
-        if (bihuQuestion.getIs_favorite().equals("true")){
+        if (bihuQuestion.getIs_favorite().equals("true")) {
             viewHolder.favorite.setImageResource(R.drawable.favorite);
-        }else {
+        } else {
             viewHolder.favorite.setImageResource(R.drawable.unfavorite);
         }
         viewHolder.favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                favoriteClickListener.onFavoriteClickListener(position,viewHolder);
+                favoriteClickListener.onFavoriteClickListener(position, viewHolder);
             }
         });
         viewHolder.author.setText(bihuQuestion.getAuthorName());
-        viewHolder.exciting.setText(bihuQuestion.getExciting()+" 赞");
-        if (bihuQuestion.getIs_exciting().equals("false")){
-            Drawable exciting = ContextCompat.getDrawable(context,R.drawable.exciting_unfill);
-            exciting.setBounds(0,0,40,40);
-            viewHolder.exciting.setCompoundDrawables(exciting,null,null,null);
-        }else {
-            Drawable exciting = ContextCompat.getDrawable(context,R.drawable.exciting_fill);
-            exciting.setBounds(0,0,40,40);
-            viewHolder.exciting.setCompoundDrawables(exciting,null,null,null);
+        viewHolder.exciting.setText(bihuQuestion.getExciting() + " 赞");
+        if (bihuQuestion.getIs_exciting().equals("false")) {
+            Drawable exciting = ContextCompat.getDrawable(context, R.drawable.exciting_unfill);
+            exciting.setBounds(0, 0, 40, 40);
+            viewHolder.exciting.setCompoundDrawables(exciting, null, null, null);
+        } else {
+            Drawable exciting = ContextCompat.getDrawable(context, R.drawable.exciting_fill);
+            exciting.setBounds(0, 0, 40, 40);
+            viewHolder.exciting.setCompoundDrawables(exciting, null, null, null);
         }
         viewHolder.exciting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                excitingClickListener.onExcitingClickListener(position,viewHolder);
+                excitingClickListener.onExcitingClickListener(position, viewHolder);
             }
         });
-        viewHolder.naive.setText(bihuQuestion.getNaive()+" 踩");
-        if (bihuQuestion.getIs_navie().equals("false")){
-            Drawable naive = ContextCompat.getDrawable(context,R.drawable.naive_unfill);
-            naive.setBounds(0,0,40,40);
-            viewHolder.naive.setCompoundDrawables(naive,null,null,null);
-        }else {
-            Drawable naive = ContextCompat.getDrawable(context,R.drawable.naive_fill);
-            naive.setBounds(0,0,40,40);
-            viewHolder.naive.setCompoundDrawables(naive,null,null,null);
+        viewHolder.naive.setText(bihuQuestion.getNaive() + " 踩");
+        if (bihuQuestion.getIs_navie().equals("false")) {
+            Drawable naive = ContextCompat.getDrawable(context, R.drawable.naive_unfill);
+            naive.setBounds(0, 0, 40, 40);
+            viewHolder.naive.setCompoundDrawables(naive, null, null, null);
+        } else {
+            Drawable naive = ContextCompat.getDrawable(context, R.drawable.naive_fill);
+            naive.setBounds(0, 0, 40, 40);
+            viewHolder.naive.setCompoundDrawables(naive, null, null, null);
         }
         viewHolder.naive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                naiveClickListener.onNaiveClickListener(position,viewHolder);
+                naiveClickListener.onNaiveClickListener(position, viewHolder);
             }
         });
-        viewHolder.comment.setText(bihuQuestion.getComment()+" 回答");
-        Bitmap defaultBitmap = MyImageTools.changeToBitmap(R.drawable.defultuser,context);
+        viewHolder.comment.setText(bihuQuestion.getComment() + " 回答");
+        Bitmap defaultBitmap = MyImageTools.changeToBitmap(R.drawable.defultuser, context);
         bihuQuestion.setBitmap(defaultBitmap);
         viewHolder.imageView.setImageBitmap(bihuQuestion.getBitmap());
 
@@ -151,10 +152,10 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
         MainActivity.fixedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (!imageUrl.equals("null")){
-                    Log.d(TAG, "onBindViewHolder: "+bihuQuestion.getTitle()+"提问者头像开始加载 url是"+imageUrl);
+                if (!imageUrl.equals("null")) {
+                    Log.d(TAG, "onBindViewHolder: " + bihuQuestion.getTitle() + "提问者头像开始加载 url是" + imageUrl);
                     bitmap[0] = MyImageTools.getBitmap(imageUrl);
-                    if (bitmap[0] !=null){
+                    if (bitmap[0] != null) {
                         Bitmap bitmapCircle = MyImageTools.cutToCircle(bitmap[0]);
                         bihuQuestion.setBitmap(bitmapCircle);
                     }
@@ -163,7 +164,7 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
                         public void run() {
 
                             viewHolder.imageView.setImageBitmap(bihuQuestion.getBitmap());
-                            Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                            Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                             viewHolder.imageView.startAnimation(animation);
                         }
                     });
@@ -174,16 +175,16 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
         MainActivity.fixedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (!bihuQuestion.getImageUrl().equals("null")){
+                if (!bihuQuestion.getImageUrl().equals("null")) {
                     String imageUrl = bihuQuestion.getImageUrl().split(",")[0];
-                    Log.d(TAG, "run: 问题的详情图片url: "+imageUrl);
+                    Log.d(TAG, "run: 问题的详情图片url: " + imageUrl);
                     final Bitmap bitmap = MyImageTools.getBitmap(imageUrl);
-                    if (bitmap!=null){
+                    if (bitmap != null) {
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 viewHolder.abstractImage.setImageBitmap(bitmap);
-                                Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                                Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                                 viewHolder.abstractImage.startAnimation(animation);
                             }
                         });
@@ -209,13 +210,13 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     }
 
     public interface OnItemClickListener {
-        void onItemClick(View view,int position);
+        void onItemClick(View view, int position);
     }
 
     @Override
     public void onClick(View v) {
-        if (OnItemClickListener!=null){
-            OnItemClickListener.onItemClick(v,(int)v.getTag());
+        if (OnItemClickListener != null) {
+            OnItemClickListener.onItemClick(v, (int) v.getTag());
         }
     }
 
@@ -223,8 +224,8 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
      * item中的exciting点击事件的接口回调
      */
 
-    public interface ExcitingClickListener{
-        void onExcitingClickListener(int position,ViewHolder viewHolder);
+    public interface ExcitingClickListener {
+        void onExcitingClickListener(int position, ViewHolder viewHolder);
     }
 
     private ExcitingClickListener excitingClickListener = null;
@@ -236,46 +237,47 @@ public class BihuSquareAdapter extends RecyclerView.Adapter<BihuSquareAdapter.Vi
     /**
      * item中的naive点击事件的接口回调
      */
-    public interface NaiveClickListener{
-        void onNaiveClickListener(int position,ViewHolder viewHolder);
+    public interface NaiveClickListener {
+        void onNaiveClickListener(int position, ViewHolder viewHolder);
     }
 
     private NaiveClickListener naiveClickListener = null;
 
-    public void setNaiveClickListener(NaiveClickListener naiveClickListener){
+    public void setNaiveClickListener(NaiveClickListener naiveClickListener) {
         this.naiveClickListener = naiveClickListener;
     }
 
     /**
      * itme中的favorite点击事件的接口回调
      */
-    public interface FavoriteClickListener{
-        void onFavoriteClickListener(int position,ViewHolder viewHolder);
+    public interface FavoriteClickListener {
+        void onFavoriteClickListener(int position, ViewHolder viewHolder);
     }
 
     private FavoriteClickListener favoriteClickListener = null;
 
-    public void setFavoriteClickListener(FavoriteClickListener favoriteClickListener){
+    public void setFavoriteClickListener(FavoriteClickListener favoriteClickListener) {
         this.favoriteClickListener = favoriteClickListener;
     }
 
     /**
      * RecyclerView删除/增加一个item
      */
-    public void remove(int position){
+    public void remove(int position) {
         bihuQuestionArrayList.remove(position);
         notifyItemRemoved(position);
         notifyDataSetChanged();
     }
-    public void add(int position,BihuQuestion bihuQuestion){
-        bihuQuestionArrayList.add(position,bihuQuestion);
+
+    public void add(int position, BihuQuestion bihuQuestion) {
+        bihuQuestionArrayList.add(position, bihuQuestion);
         notifyItemInserted(position);
     }
 
     /**
      * RecyclerView更新一个item
      */
-    public void update(){
+    public void update() {
         notifyDataSetChanged();
     }
 

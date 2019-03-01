@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
 
-public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.ViewHolder> implements View.OnClickListener{
+public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.ViewHolder> implements View.OnClickListener {
     private ArrayList<News> news = new ArrayList<>();
     private Context context;
     private android.os.Handler mainHandler;
@@ -41,8 +41,8 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
     /**
      * RecyclerViewAdapter相关方法
      */
-    public class ViewHolder extends RecyclerView.ViewHolder{
-        TextView desc,author,time;
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        TextView desc, author, time;
         ImageView images;
 
         public ViewHolder(@NonNull View itemView) {
@@ -57,7 +57,7 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.gank_news_item,viewGroup,false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.gank_news_item, viewGroup, false);
         ViewHolder viewHolder = new ViewHolder(view);
         view.setOnClickListener(this);
         return viewHolder;
@@ -70,10 +70,10 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
         viewHolder.author.setText(gankNews.getWho());
         viewHolder.time.setText(gankNews.getTime());
         viewHolder.images.setImageResource(R.drawable.ganknews);
-        Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+        Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
         viewHolder.images.startAnimation(animation);
         viewHolder.itemView.setTag(i);
-        if (gankNews.getImage()!=null)
+        if (gankNews.getImage() != null)
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -81,10 +81,10 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Log.i(TAG, "run: 加载"+gankNews.getDesc()+"的张图片");
+                            Log.i(TAG, "run: 加载" + gankNews.getDesc() + "的张图片");
                             viewHolder.images.setImageBitmap(bitmap);
                             //设置动画效果!
-                            Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                            Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                             viewHolder.images.startAnimation(animation);
                         }
                     });
@@ -98,7 +98,6 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
     }
 
 
-
     /**
      * RecyclerViewItem的点击事件(接口回调
      */
@@ -110,13 +109,13 @@ public class GankNewsInitHelper extends RecyclerView.Adapter<GankNewsInitHelper.
     }
 
     public static interface OnItemClickListener {
-        void onItemClick(View view,int position);
+        void onItemClick(View view, int position);
     }
 
     @Override
     public void onClick(View v) {
-        if (OnItemClickListener!=null){
-            OnItemClickListener.onItemClick(v,(int)v.getTag());
+        if (OnItemClickListener != null) {
+            OnItemClickListener.onItemClick(v, (int) v.getTag());
         }
     }
 

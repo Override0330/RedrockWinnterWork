@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
 
-public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHelper.ViewHolder> implements View.OnClickListener{
+public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHelper.ViewHolder> implements View.OnClickListener {
     private ArrayList<XianduNews> xianduNewsArrayList = new ArrayList<>();
     private Context context;
     private String categories;
@@ -40,9 +40,9 @@ public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHel
     }
 
 
-
     /**
      * RecyclerView的Adapter部分
+     *
      * @param viewHolder
      * @param i
      */
@@ -53,25 +53,25 @@ public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHel
         viewHolder.title.setText(xianduNews.getTitle());
         viewHolder.time.setText(xianduNews.getTime());
         viewHolder.titleImage.setImageDrawable(xianduNews.getImageView().getDrawable());
-        Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+        Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
         viewHolder.titleImage.startAnimation(animation);
         viewHolder.itemView.setTag(i);
         final String url = xianduNews.getImage();
-        if (url.equals("null")||url.equals("none")){
+        if (url.equals("null") || url.equals("none")) {
 
-        }else {
+        } else {
             MainActivity.fixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "run: 开始加载"+xianduNews.getTitle()+"的图片 url:"+url);
+                    Log.d(TAG, "run: 开始加载" + xianduNews.getTitle() + "的图片 url:" + url);
                     final Bitmap bitmap = MyImageTools.getBitmap(url);
-                    if (bitmap!=null){
+                    if (bitmap != null) {
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (bitmap.getHeight()>viewHolder.title.getHeight()+150){
+                                if (bitmap.getHeight() > viewHolder.title.getHeight() + 150) {
                                     viewHolder.titleImage.setImageBitmap(bitmap);
-                                    Animation animation = AnimationUtils.loadAnimation(context,R.anim.fadein);
+                                    Animation animation = AnimationUtils.loadAnimation(context, R.anim.fadein);
                                     viewHolder.titleImage.startAnimation(animation);
                                 }
                             }
@@ -85,7 +85,7 @@ public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHel
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.xiandu_news_item,viewGroup,false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.xiandu_news_item, viewGroup, false);
         ViewHolder viewHodler = new ViewHolder(view);
         view.setOnClickListener(this);
         return viewHodler;
@@ -97,9 +97,10 @@ public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHel
     }
 
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView titleImage;
-        TextView title,time;
+        TextView title, time;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             titleImage = itemView.findViewById(R.id.iv_xiandu_title);
@@ -115,13 +116,13 @@ public class XianduNewsInitHelper extends RecyclerView.Adapter<XianduNewsInitHel
     }
 
     public static interface OnItemClickListener {
-        void onItemClick(View view,int position);
+        void onItemClick(View view, int position);
     }
 
     @Override
     public void onClick(View v) {
-        if (OnItemClickListener!=null){
-            OnItemClickListener.onItemClick(v,(int)v.getTag());
+        if (OnItemClickListener != null) {
+            OnItemClickListener.onItemClick(v, (int) v.getTag());
         }
     }
 }
